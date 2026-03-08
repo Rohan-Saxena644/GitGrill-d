@@ -51,8 +51,17 @@ Respond ONLY with valid JSON (no markdown, no explanation), in this exact format
     const text = response.text ?? '';
     // Strip any markdown code fences the model might add
     const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    const questions = JSON.parse(cleaned) as Question[];
-    return questions;
+
+    try {
+        const questions = JSON.parse(cleaned) as Question[];
+        if (!Array.isArray(questions) || questions.length === 0) {
+            throw new Error('Gemini returned an empty or invalid questions array');
+        }
+        return questions;
+    } catch {
+        console.error('Failed to parse Gemini response as JSON:', cleaned);
+        throw new Error('Gemini returned malformed JSON. Raw response: ' + cleaned.slice(0, 200));
+    }
 }
 
 /**
@@ -91,5 +100,15 @@ Respond ONLY with valid JSON (no markdown, no explanation):
 
     const text = response.text ?? '';
     const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    return JSON.parse(cleaned);
+
+    try {
+        const result = JSON.parse(cleaned);
+        if (typeof result.score !== 'number' || !result.feedback || !result.aiAnswer) {
+            throw new Error('Gemini returned incomplete evaluation fields');
+        }
+        return result;
+    } catch {
+        console.error('Failed to parse Gemini evaluation response:', cleaned);
+        throw new Error('Gemini returned malformed JSON. Raw response: ' + cleaned.slice(0, 200));
+    }
 }
