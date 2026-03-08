@@ -7,9 +7,10 @@
 import OpenAI from 'openai';
 import { TaggedFile, FocusArea, Question } from '@/types';
 
-// openrouter/free auto-selects from all currently available free models —
-// it never returns a 404 even if individual models get removed.
-const MODEL = 'meta-llama/llama-3.3-70b-instruct:free';
+// openrouter/free automatically picks from all currently available free
+// models — it never 404s even when individual models get removed or
+// rate-limited. DeepSeek V3 is the explicit fallback (confirmed free).
+const MODEL = 'openrouter/auto';
 
 // Lazy client initialization — only created when a function is called,
 // not at module load time. This prevents Vercel build crashes when the
@@ -18,6 +19,10 @@ function getClient() {
     return new OpenAI({
         baseURL: 'https://openrouter.ai/api/v1',
         apiKey: process.env.OPENROUTER_API_KEY!,
+        defaultHeaders: {
+            'HTTP-Referer': process.env.NEXTAUTH_URL ?? 'http://localhost:3000',
+            'X-Title': 'Code Interviewer',
+        },
     });
 }
 
