@@ -44,7 +44,7 @@ Respond ONLY with valid JSON (no markdown, no explanation), in this exact format
 ]`;
 
     const response = await ai.models.generateContent({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-flash-latest',
         contents: prompt,
     });
 
@@ -85,7 +85,7 @@ Respond ONLY with valid JSON (no markdown, no explanation):
 }`;
 
     const response = await ai.models.generateContent({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-flash-latest',
         contents: prompt,
     });
 
