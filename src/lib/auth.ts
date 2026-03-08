@@ -21,17 +21,17 @@ export const authOptions: AuthOptions = {
     },
 
     callbacks: {
-        // Attach the GitHub user id to the JWT so we can use it as userId in MongoDB
-        async jwt({ token, account, profile }) {
-            if (account && profile) {
-                token.userId = (profile as { id?: number }).id?.toString() ?? token.sub;
+        // Attach the underlying provider account ID (sub) to the JWT
+        async jwt({ token }) {
+            if (token.sub) {
+                token.userId = token.sub;
             }
             return token;
         },
 
         // Expose userId on the client-side session object
         async session({ session, token }) {
-            if (session.user) {
+            if (session.user && token.userId) {
                 (session.user as { userId?: string }).userId = token.userId as string;
             }
             return session;
