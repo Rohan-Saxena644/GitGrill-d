@@ -1,11 +1,8 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 import { TaggedFile, FocusArea, Question, Difficulty } from '@/types';
 
-// Initialize Gemini client with the API key from env
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
-// We use gemini-1.5-flash — fast and cost-effective for this use case
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+// The client automatically gets the API key from the environment variable `GEMINI_API_KEY`
+const ai = new GoogleGenAI({});
 
 /**
  * Generates interview questions from tagged code files.
@@ -46,18 +43,21 @@ Respond ONLY with valid JSON (no markdown, no explanation), in this exact format
   }
 ]`;
 
-    const result = await model.generateContent(prompt);
-    const response = result.response.text();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: prompt,
+    });
 
-    // Parse the JSON array from the response
-    const cleaned = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const text = response.text ?? '';
+    // Strip any markdown code fences the model might add
+    const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     const questions = JSON.parse(cleaned) as Question[];
     return questions;
 }
 
 /**
  * Evaluates a user's answer to an interview question.
- * Returns a score (1-10), feedback, and sample answer.
+ * Returns a score (1-10), feedback, and a model answer.
  */
 export async function evaluateAnswer(
     question: string,
@@ -84,9 +84,12 @@ Respond ONLY with valid JSON (no markdown, no explanation):
   "aiAnswer": "<a strong 3-5 sentence model answer for this question>"
 }`;
 
-    const result = await model.generateContent(prompt);
-    const response = result.response.text();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: prompt,
+    });
 
-    const cleaned = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const text = response.text ?? '';
+    const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     return JSON.parse(cleaned);
 }
