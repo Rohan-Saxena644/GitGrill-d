@@ -56,6 +56,7 @@ export default function NewInterviewPage() {
 
     // ── Step 1: Fetch file list ──
     async function fetchFiles() {
+        if (loading) return;
         setError('');
         setLoading(true);
         try {
@@ -83,6 +84,7 @@ export default function NewInterviewPage() {
 
     // ── Step 3: Create session + generate questions ──
     async function generateQuestions() {
+        if (loading) return;
         setError('');
         setLoading(true);
         try {

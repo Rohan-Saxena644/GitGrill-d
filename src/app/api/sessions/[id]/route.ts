@@ -61,3 +61,25 @@ export async function PATCH(
 
     return NextResponse.json(updated);
 }
+
+// DELETE /api/sessions/[id] — delete a session
+export async function DELETE(
+    req: NextRequest,
+    { params }: { params: { id: string } }
+) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userId = (session.user as { userId?: string }).userId;
+
+    await connectDB();
+    const deleted = await Session.findOneAndDelete({ _id: params.id, userId });
+
+    if (!deleted) {
+        return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true });
+}

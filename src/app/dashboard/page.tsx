@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { PlusCircle, GitBranch, Clock, CheckCircle2, Loader2 } from 'lucide-react';
+import { PlusCircle, GitBranch, Clock, CheckCircle2, Loader2, Trash2 } from 'lucide-react';
 import { ISession } from '@/types';
 
 function ScoreBadge({ avg }: { avg: number }) {
@@ -41,6 +41,24 @@ export default function DashboardPage() {
     const router = useRouter();
     const [sessions, setSessions] = useState<ISession[]>([]);
     const [loading, setLoading] = useState(true);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+
+    async function handleDelete(id: string) {
+        if (!confirm('Are you sure you want to delete this session?')) return;
+        setDeletingId(id);
+        try {
+            const res = await fetch(`/api/sessions/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                setSessions((prev) => prev.filter((s) => s._id !== id));
+            } else {
+                alert('Failed to delete session');
+            }
+        } catch (e) {
+            alert('Error deleting session');
+        } finally {
+            setDeletingId(null);
+        }
+    }
 
     // Redirect if not logged in
     useEffect(() => {
@@ -112,36 +130,55 @@ export default function DashboardPage() {
                         const date = new Date(s.createdAt!).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                         const href = s.status === 'completed' ? `/interview/${s._id}/review` : `/interview/${s._id}`;
                         return (
-                            <Link
-                                key={s._id}
-                                href={href}
-                                style={{ textDecoration: 'none' }}
-                            >
-                                <div className="glass-card" style={{ padding: '24px', cursor: 'pointer' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-                                        <div style={{ minWidth: 0 }}>
-                                            <div style={{ fontWeight: 700, color: '#e2e8f0', fontSize: '1.05rem', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                {s.repoName}
+                            <div key={s._id} style={{ position: 'relative' }}>
+                                <button
+                                    onClick={() => handleDelete(s._id!)}
+                                    disabled={deletingId === s._id}
+                                    style={{
+                                        position: 'absolute', top: 16, right: 16, zIndex: 10,
+                                        background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444',
+                                        border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 8,
+                                        padding: 8, cursor: deletingId === s._id ? 'not-allowed' : 'pointer',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        transition: 'all 0.2s', outline: 'none'
+                                    }}
+                                    title="Delete session"
+                                >
+                                    {deletingId === s._id ? <Loader2 size={16} className="spinner" /> : <Trash2 size={16} />}
+                                </button>
+                                <Link
+                                    href={href}
+                                    style={{ textDecoration: 'none', display: 'block', height: '100%' }}
+                                >
+                                    <div className="glass-card" style={{ padding: '24px', cursor: 'pointer', height: '100%' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+                                            <div style={{ minWidth: 0, paddingRight: 40 }}>
+                                                <div style={{ fontWeight: 700, color: '#e2e8f0', fontSize: '1.05rem', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                    {s.repoName}
+                                                </div>
+                                                <div style={{ color: '#64748b', fontSize: '0.8rem' }}>{s.repoOwner}</div>
                                             </div>
-                                            <div style={{ color: '#64748b', fontSize: '0.8rem' }}>{s.repoOwner}</div>
+                                            {/* Moved score badge to bottom layout below to not clash with delete button */}
                                         </div>
-                                        <ScoreBadge avg={score} />
-                                    </div>
 
-                                    <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
-                                        <StatusBadge status={s.status} />
-                                        <span style={{ color: '#64748b', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4 }}>
-                                            <CheckCircle2 size={13} />
-                                            {s.answers.length}/{s.questions.length} answered
-                                        </span>
-                                    </div>
+                                        <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
+                                            <StatusBadge status={s.status} />
+                                            <span style={{ color: '#64748b', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                <CheckCircle2 size={13} />
+                                                {s.answers.length}/{s.questions.length} answered
+                                            </span>
+                                        </div>
 
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#64748b', fontSize: '0.8rem' }}>
-                                        <Clock size={13} />
-                                        {date}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#64748b', fontSize: '0.8rem' }}>
+                                                <Clock size={13} />
+                                                {date}
+                                            </div>
+                                            <ScoreBadge avg={score} />
+                                        </div>
                                     </div>
-                                </div>
-                            </Link>
+                                </Link>
+                            </div>
                         );
                     })}
                 </div>
