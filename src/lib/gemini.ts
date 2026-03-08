@@ -1,18 +1,25 @@
 /**
  * AI helpers — powered by OpenRouter (free tier, no credit card needed).
  * Uses the OpenAI-compatible SDK since OpenRouter supports that interface.
- * Add OPENROUTER_API_KEY to your .env file to use this.
+ * Add OPENROUTER_API_KEY to your .env and Vercel environment variables.
  */
 
 import OpenAI from 'openai';
 import { TaggedFile, FocusArea, Question } from '@/types';
 
-const client = new OpenAI({
-    baseURL: 'https://openrouter.ai/api/v1',
-    apiKey: process.env.OPENROUTER_API_KEY!,
-});
+// openrouter/free auto-selects from all currently available free models —
+// it never returns a 404 even if individual models get removed.
+const MODEL = 'meta-llama/llama-3.3-70b-instruct:free';
 
-const MODEL = 'meta-llama/llama-3.3-8b-instruct:free';
+// Lazy client initialization — only created when a function is called,
+// not at module load time. This prevents Vercel build crashes when the
+// env var isn't available during the build phase.
+function getClient() {
+    return new OpenAI({
+        baseURL: 'https://openrouter.ai/api/v1',
+        apiKey: process.env.OPENROUTER_API_KEY!,
+    });
+}
 
 /**
  * Generates interview questions from tagged code files.
@@ -23,6 +30,8 @@ export async function generateQuestions(
     focusAreas: FocusArea[],
     repoName: string
 ): Promise<Question[]> {
+    const client = getClient();
+
     const fileContext = taggedFiles
         .filter((f) => f.content)
         .map((f) => `### File: ${f.path} (tagged as: ${f.tag})\n\`\`\`\n${f.content}\n\`\`\``)
@@ -81,6 +90,8 @@ export async function evaluateAnswer(
     userAnswer: string,
     fileContext: string
 ): Promise<{ score: number; feedback: string; aiAnswer: string }> {
+    const client = getClient();
+
     const prompt = `You are a senior software engineer evaluating an interview answer.
 
 Question: ${question}
