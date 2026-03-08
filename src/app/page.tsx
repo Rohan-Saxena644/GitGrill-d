@@ -38,14 +38,7 @@ const features = [
     },
 ];
 
-const steps = [
-    { n: '01', title: 'Paste Repo URL', desc: 'Enter any public GitHub repo link.' },
-    { n: '02', title: 'Tag Files', desc: 'Mark which files are most important.' },
-    { n: '03', title: 'Pick Focus Areas', desc: 'Choose what topics to be quizzed on.' },
-    { n: '04', title: 'Answer Questions', desc: 'AI generates questions from your actual code.' },
-    { n: '05', title: 'Get Graded', desc: 'Gemini evaluates your answers with detailed feedback.' },
-    { n: '06', title: 'Add Notes', desc: 'Annotate answers to build your study guide.' },
-];
+
 
 export default function LandingPage() {
     const { data: session } = useSession();
@@ -134,49 +127,12 @@ export default function LandingPage() {
 
                     {/* Social proof */}
                     <p style={{ marginTop: 24, color: '#64748b', fontSize: '0.85rem' }}>
-                        No credit card needed · Public repos only · Powered by Gemini 1.5 Flash
+                        No credit card needed · Public repos only · Powered by Gemini 3.0-flash
                     </p>
                 </div>
             </section>
 
-            {/* ── How It Works ── */}
-            <section style={{ padding: '60px 24px', background: 'rgba(15,22,41,0.5)' }}>
-                <div className="page-container">
-                    <h2 style={{ textAlign: 'center', fontSize: '1.9rem', fontWeight: 700, marginBottom: 8, color: '#e2e8f0' }}>
-                        How It Works
-                    </h2>
-                    <div className="section-divider" style={{ margin: '0 auto 48px' }} />
-                    <div
-                        style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                            gap: 20,
-                        }}
-                    >
-                        {steps.map((s) => (
-                            <div
-                                key={s.n}
-                                className="glass-card"
-                                style={{ padding: '24px', display: 'flex', gap: 16, alignItems: 'flex-start' }}
-                            >
-                                <span
-                                    style={{
-                                        fontSize: '0.8rem', fontWeight: 800, color: '#38bdf8',
-                                        background: 'rgba(56,189,248,0.1)', border: '1px solid rgba(56,189,248,0.25)',
-                                        borderRadius: 8, padding: '4px 10px', flexShrink: 0, letterSpacing: '0.05em',
-                                    }}
-                                >
-                                    {s.n}
-                                </span>
-                                <div>
-                                    <div style={{ fontWeight: 600, color: '#e2e8f0', marginBottom: 4 }}>{s.title}</div>
-                                    <div style={{ color: '#94a3b8', fontSize: '0.88rem', lineHeight: 1.6 }}>{s.desc}</div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
+
 
             {/* ── Features ── */}
             <section style={{ padding: '60px 24px' }}>
@@ -225,12 +181,9 @@ export default function LandingPage() {
                             textAlign: 'center',
                         }}
                     >
-                        <h2 style={{ fontSize: '2rem', fontWeight: 700, color: '#e2e8f0', marginBottom: 12 }}>
+                        <h2 style={{ fontSize: '2rem', fontWeight: 700, color: '#e2e8f0', marginBottom: 32 }}>
                             Start prepping with your own code
                         </h2>
-                        <p style={{ color: '#94a3b8', marginBottom: 32, fontSize: '1.05rem' }}>
-                            The questions nobody else gets asked — because they&apos;re about YOUR project.
-                        </p>
                         <button onClick={handleCTA} className="btn-primary" style={{ padding: '14px 36px', fontSize: '1.05rem' }}>
                             {session ? 'New Interview' : 'Sign in with GitHub'}
                             <ArrowRight size={18} />
