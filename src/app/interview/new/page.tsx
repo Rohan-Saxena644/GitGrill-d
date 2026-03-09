@@ -138,7 +138,7 @@ export default function NewInterviewPage() {
             Paste your GitHub repo URL
           </h2>
           <p style={{ color: '#94a3b8', marginBottom: 24, fontSize: '0.875rem' }}>
-            Must be a public repository. We'll read the file list but not fetch content until question generation.
+            Must be a public repository. We&apos;ll read the file list but not fetch content until question generation.
           </p>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <input
