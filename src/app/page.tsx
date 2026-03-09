@@ -68,10 +68,21 @@ export default function LandingPage() {
         }} />
 
         <div className="page-container" style={{ position: 'relative' }}>
+          {/* App name */}
+          <div style={{
+            fontSize: 'clamp(2.8rem, 8vw, 5.5rem)',
+            fontWeight: 900, lineHeight: 1,
+            marginBottom: 16, letterSpacing: '-0.03em',
+            background: 'linear-gradient(135deg, #38bdf8 0%, #818cf8 100%)',
+            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+          }}>
+            CodeViva
+          </div>
+
           {/* Badge */}
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
-            padding: '6px 16px', borderRadius: 20, marginBottom: 28,
+            padding: '6px 16px', borderRadius: 20, marginBottom: 24,
             background: 'rgba(56,189,248,0.08)', border: '1px solid rgba(56,189,248,0.25)',
             color: '#38bdf8', fontSize: '0.82rem', fontWeight: 600,
           }}>
@@ -80,12 +91,12 @@ export default function LandingPage() {
 
           {/* Headline */}
           <h1 style={{
-            fontSize: 'clamp(2rem, 5.5vw, 3.8rem)',
-            fontWeight: 800, lineHeight: 1.15,
+            fontSize: 'clamp(1.4rem, 3.5vw, 2.4rem)',
+            fontWeight: 700, lineHeight: 1.25,
             marginBottom: 20, color: '#e2e8f0',
           }}>
-            Interview Yourself On{' '}
-            <span className="gradient-text">Your Own Code</span>
+            Interview yourself on{' '}
+            <span className="gradient-text">your own code</span>
           </h1>
 
           <p style={{
