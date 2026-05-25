@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { FocusArea, Question, TaggedFile } from '@/types';
+import { DifficultyPreset, FocusArea, InterviewStyle, Question, TaggedFile } from '@/types';
 
 const MODEL = 'openrouter/auto';
 
@@ -47,20 +47,47 @@ function sanitizeQuestion(question: Question, index: number): Question {
 export async function generateQuestions(
     taggedFiles: TaggedFile[],
     focusAreas: FocusArea[],
-    repoName: string
+    repoName: string,
+    options?: {
+        interviewStyle?: InterviewStyle;
+        difficultyPreset?: DifficultyPreset;
+    }
 ): Promise<Question[]> {
     const client = getClient();
+    const interviewStyle = options?.interviewStyle ?? 'practice';
+    const difficultyPreset = options?.difficultyPreset ?? 'balanced';
 
     const fileContext = taggedFiles
         .filter((file) => file.content)
         .map((file) => `### File: ${file.path} (tagged as: ${file.tag})\n\`\`\`\n${file.content}\n\`\`\``)
         .join('\n\n');
 
+    const styleInstructions =
+        interviewStyle === 'interview'
+            ? `Use a realistic interview tone. The questions should feel slightly sharper, more direct, and closer to what a real interviewer might ask live.`
+            : `Use a coaching-oriented practice tone. The questions should still feel real, but should be framed to help the candidate learn and build confidence.`;
+
+    const difficultyMix =
+        difficultyPreset === 'beginner-friendly'
+            ? 'Use difficulty mix: 5 Easy, 4 Medium, 1 Hard.'
+            : difficultyPreset === 'challenging'
+              ? 'Use difficulty mix: 2 Easy, 5 Medium, 3 Hard.'
+              : 'Use difficulty mix: 4 Easy, 4 Medium, 2 Hard.';
+
+    const difficultyInstructions =
+        difficultyPreset === 'beginner-friendly'
+            ? 'Favor practical, answerable questions that a junior or early-mid developer can reason through from the repo.'
+            : difficultyPreset === 'challenging'
+              ? 'Push a bit deeper on tradeoffs, failure cases, and architecture, but keep every question fair and answerable from visible code and common engineering knowledge.'
+              : 'Keep the set balanced between approachable questions and deeper engineering tradeoffs.';
+
     const prompt = `You are a senior software engineer creating realistic interview practice.
 The candidate has shared the project "${repoName}".
 Study the code and generate exactly 10 multiple-choice questions for viva and interview preparation.
 
 Priority focus areas: ${focusAreas.join(', ')}
+Interview style: ${interviewStyle}
+Difficulty preset: ${difficultyPreset}
 
 Code files:
 ${fileContext}
@@ -71,7 +98,9 @@ Rules:
 - Avoid obscure framework internals, version trivia, and anything the candidate would need to look up.
 - Prioritize the selected focus areas, but keep the set balanced and realistic.
 - Use code-specific details when helpful, but only when they produce fair questions.
-- Mix difficulty as 4 Easy, 4 Medium, and 2 Hard.
+- ${styleInstructions}
+- ${difficultyInstructions}
+- ${difficultyMix}
 - Every question must have exactly 4 options and exactly 1 correct answer.
 - Explanations should teach the candidate how to answer the same idea in a viva.
 - Vary the correct option position. Do not always put the right answer in the same slot.

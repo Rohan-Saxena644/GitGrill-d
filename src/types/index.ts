@@ -9,6 +9,8 @@ export type Difficulty = 'Easy' | 'Medium' | 'Hard';
 export type SessionStatus = 'draft' | 'active' | 'completed';
 
 export type InterviewMode = 'guest' | 'saved';
+export type InterviewStyle = 'practice' | 'interview';
+export type DifficultyPreset = 'beginner-friendly' | 'balanced' | 'challenging';
 
 // A file fetched from GitHub with a tag applied by the user
 export interface TaggedFile {
@@ -49,6 +51,8 @@ export interface ISession {
     repoName: string;
     taggedFiles: TaggedFile[];
     focusAreas: FocusArea[];
+    interviewStyle?: InterviewStyle;
+    difficultyPreset?: DifficultyPreset;
     questions: Question[];
     answers: Answer[];
     status: SessionStatus;

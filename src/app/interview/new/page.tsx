@@ -15,7 +15,7 @@ import {
     Target,
 } from 'lucide-react';
 import { createGuestSession, saveGuestSession } from '@/lib/guest-session';
-import { FileTag, FocusArea, GitHubFile, ISession } from '@/types';
+import { DifficultyPreset, FileTag, FocusArea, GitHubFile, ISession, InterviewStyle } from '@/types';
 
 const FOCUS_AREAS: FocusArea[] = ['Architecture', 'Error Handling', 'Performance', 'Security'];
 
@@ -25,6 +25,45 @@ const TAG_OPTIONS: { value: FileTag; label: string; color: string }[] = [
     { value: 'boilerplate', label: 'Boilerplate', color: '#94a3b8' },
     { value: 'config', label: 'Config', color: '#fbbf24' },
     { value: 'tests', label: 'Tests', color: '#34d399' },
+];
+
+const INTERVIEW_STYLE_OPTIONS: {
+    value: InterviewStyle;
+    title: string;
+    description: string;
+}[] = [
+    {
+        value: 'practice',
+        title: 'Practice Mode',
+        description: 'More coaching-oriented wording with learning-friendly explanations.',
+    },
+    {
+        value: 'interview',
+        title: 'Interview Mode',
+        description: 'Sharper, more live-interview-style questioning while still staying fair.',
+    },
+];
+
+const DIFFICULTY_PRESET_OPTIONS: {
+    value: DifficultyPreset;
+    title: string;
+    description: string;
+}[] = [
+    {
+        value: 'beginner-friendly',
+        title: 'Beginner Friendly',
+        description: 'More approachable questions with just one truly hard one.',
+    },
+    {
+        value: 'balanced',
+        title: 'Balanced',
+        description: 'A steady mix of easy, medium, and hard questions.',
+    },
+    {
+        value: 'challenging',
+        title: 'Challenging',
+        description: 'More tradeoffs, deeper reasoning, and tougher interview-style questions.',
+    },
 ];
 
 export default function NewInterviewPage() {
@@ -38,6 +77,8 @@ export default function NewInterviewPage() {
     const [files, setFiles] = useState<GitHubFile[]>([]);
     const [tags, setTags] = useState<Record<string, FileTag>>({});
     const [focusAreas, setFocusAreas] = useState<FocusArea[]>([]);
+    const [interviewStyle, setInterviewStyle] = useState<InterviewStyle>('practice');
+    const [difficultyPreset, setDifficultyPreset] = useState<DifficultyPreset>('balanced');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -101,7 +142,15 @@ export default function NewInterviewPage() {
                 const createRes = await fetch('/api/sessions', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ repoUrl, repoOwner, repoName, taggedFiles, focusAreas }),
+                    body: JSON.stringify({
+                        repoUrl,
+                        repoOwner,
+                        repoName,
+                        taggedFiles,
+                        focusAreas,
+                        interviewStyle,
+                        difficultyPreset,
+                    }),
                 });
                 const savedSession = await createRes.json();
                 if (!createRes.ok) throw new Error(savedSession.error ?? 'Failed to create session');
@@ -121,7 +170,14 @@ export default function NewInterviewPage() {
             const genRes = await fetch('/api/ai/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ repoOwner, repoName, taggedFiles, focusAreas }),
+                body: JSON.stringify({
+                    repoOwner,
+                    repoName,
+                    taggedFiles,
+                    focusAreas,
+                    interviewStyle,
+                    difficultyPreset,
+                }),
             });
             const generated = await genRes.json();
             if (!genRes.ok) throw new Error(generated.error ?? 'Failed to generate questions');
@@ -133,6 +189,8 @@ export default function NewInterviewPage() {
                 repoName,
                 taggedFiles: generated.taggedFiles ?? taggedFiles,
                 focusAreas,
+                interviewStyle,
+                difficultyPreset,
                 questions: generated.questions,
                 answers: [],
                 status: 'active',
@@ -419,12 +477,88 @@ export default function NewInterviewPage() {
                             marginBottom: 8,
                         }}
                     >
-                        Choose focus areas
+                        Tune the interview
                     </h2>
                     <p style={{ color: '#94a3b8', fontSize: '0.875rem', marginBottom: 24 }}>
-                        These guide the interview, but the AI will still keep the set realistic and balanced. You will
-                        get 10 MCQ-based questions with explanations built for viva prep.
+                        Pick the focus areas, the interview style, and the difficulty preset. You will still get 10
+                        MCQ-based questions with explanations built for viva prep.
                     </p>
+
+                    <div style={{ marginBottom: 24 }}>
+                        <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 10 }}>Interview style</div>
+                        <div
+                            style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%,220px), 1fr))',
+                                gap: 12,
+                            }}
+                        >
+                            {INTERVIEW_STYLE_OPTIONS.map((option) => {
+                                const active = interviewStyle === option.value;
+                                return (
+                                    <button
+                                        key={option.value}
+                                        onClick={() => setInterviewStyle(option.value)}
+                                        style={{
+                                            padding: '16px',
+                                            borderRadius: 12,
+                                            border: active
+                                                ? '1px solid rgba(56,189,248,0.6)'
+                                                : '1px solid var(--border)',
+                                            background: active ? 'rgba(56,189,248,0.08)' : 'rgba(19,29,53,0.4)',
+                                            color: '#e2e8f0',
+                                            cursor: 'pointer',
+                                            textAlign: 'left',
+                                        }}
+                                    >
+                                        <div style={{ fontWeight: 600, marginBottom: 6 }}>{option.title}</div>
+                                        <div style={{ color: '#94a3b8', fontSize: '0.84rem', lineHeight: 1.6 }}>
+                                            {option.description}
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <div style={{ marginBottom: 24 }}>
+                        <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 10 }}>Difficulty preset</div>
+                        <div
+                            style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%,220px), 1fr))',
+                                gap: 12,
+                            }}
+                        >
+                            {DIFFICULTY_PRESET_OPTIONS.map((option) => {
+                                const active = difficultyPreset === option.value;
+                                return (
+                                    <button
+                                        key={option.value}
+                                        onClick={() => setDifficultyPreset(option.value)}
+                                        style={{
+                                            padding: '16px',
+                                            borderRadius: 12,
+                                            border: active
+                                                ? '1px solid rgba(56,189,248,0.6)'
+                                                : '1px solid var(--border)',
+                                            background: active ? 'rgba(56,189,248,0.08)' : 'rgba(19,29,53,0.4)',
+                                            color: '#e2e8f0',
+                                            cursor: 'pointer',
+                                            textAlign: 'left',
+                                        }}
+                                    >
+                                        <div style={{ fontWeight: 600, marginBottom: 6 }}>{option.title}</div>
+                                        <div style={{ color: '#94a3b8', fontSize: '0.84rem', lineHeight: 1.6 }}>
+                                            {option.description}
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 10 }}>Focus areas</div>
 
                     <div
                         style={{
@@ -512,7 +646,7 @@ export default function NewInterviewPage() {
                     >
                         <p style={{ color: '#64748b', fontSize: '0.82rem' }}>
                             {taggedCount} file{taggedCount !== 1 ? 's' : ''} tagged · {focusAreas.length} area
-                            {focusAreas.length !== 1 ? 's' : ''} selected
+                            {focusAreas.length !== 1 ? 's' : ''} selected · {interviewStyle === 'practice' ? 'practice mode' : 'interview mode'} · {difficultyPreset}
                         </p>
                         <button
                             className="btn-primary"

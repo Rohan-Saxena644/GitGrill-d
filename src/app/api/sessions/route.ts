@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
         const userId = (session.user as { userId?: string }).userId;
         const body = await req.json();
-        const { repoUrl, repoOwner, repoName, taggedFiles, focusAreas } = body;
+        const { repoUrl, repoOwner, repoName, taggedFiles, focusAreas, interviewStyle, difficultyPreset } = body;
 
         if (!repoUrl || !repoOwner || !repoName) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -51,6 +51,8 @@ export async function POST(req: NextRequest) {
             repoName,
             taggedFiles: taggedFiles ?? [],
             focusAreas: focusAreas ?? [],
+            interviewStyle: interviewStyle ?? 'practice',
+            difficultyPreset: difficultyPreset ?? 'balanced',
             questions: [],
             answers: [],
             status: 'draft',

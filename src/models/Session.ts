@@ -1,5 +1,13 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
-import { TaggedFile, FocusArea, Question, Answer, SessionStatus } from '@/types';
+import {
+    TaggedFile,
+    FocusArea,
+    Question,
+    Answer,
+    SessionStatus,
+    InterviewStyle,
+    DifficultyPreset,
+} from '@/types';
 
 // The shape of a Session document in MongoDB
 export interface ISessionDoc extends Document {
@@ -9,6 +17,8 @@ export interface ISessionDoc extends Document {
     repoName: string;
     taggedFiles: TaggedFile[];
     focusAreas: FocusArea[];
+    interviewStyle?: InterviewStyle;
+    difficultyPreset?: DifficultyPreset;
     questions: Question[];
     answers: Answer[];
     status: SessionStatus;
@@ -32,6 +42,12 @@ const SessionSchema = new Schema<ISessionDoc>(
         ],
 
         focusAreas: [{ type: String }],
+        interviewStyle: { type: String, enum: ['practice', 'interview'], default: 'practice' },
+        difficultyPreset: {
+            type: String,
+            enum: ['beginner-friendly', 'balanced', 'challenging'],
+            default: 'balanced',
+        },
 
         questions: [
             {
