@@ -51,6 +51,7 @@ const SessionSchema = new Schema<ISessionDoc>(
 
         questions: [
             {
+                type: { type: String, enum: ['mcq', 'descriptive'], default: 'mcq' },
                 text: String,
                 category: String,
                 difficulty: { type: String, enum: ['Easy', 'Medium', 'Hard'] },

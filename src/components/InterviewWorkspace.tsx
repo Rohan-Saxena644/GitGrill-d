@@ -13,7 +13,7 @@ type EvaluationResult = {
     feedback: string;
     aiAnswer: string;
     isCorrect: boolean;
-    correctAnswerIndex: number;
+    correctAnswerIndex?: number;
 };
 
 const DIFFICULTY_OPTIONS: Difficulty[] = ['Easy', 'Medium', 'Hard'];
@@ -48,6 +48,7 @@ export default function InterviewWorkspace({
     const [session, setSession] = useState<ISession | GuestSessionState | null>(null);
     const [currentQ, setCurrentQ] = useState(0);
     const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null);
+    const [answerText, setAnswerText] = useState('');
     const [note, setNote] = useState('');
     const [userDiff, setUserDiff] = useState<Difficulty | ''>('');
     const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null);
@@ -113,11 +114,13 @@ export default function InterviewWorkspace({
     }
 
     if (!session || !question || !totalQ) return null;
+    const currentQuestion = question;
 
     const progress = (currentQ / totalQ) * 100;
 
     async function submitAnswer() {
-        if (selectedOptionIndex === null) return;
+        if (currentQuestion.type === 'mcq' && selectedOptionIndex === null) return;
+        if (currentQuestion.type === 'descriptive' && !answerText.trim()) return;
 
         setError('');
         setLoading(true);
@@ -125,7 +128,11 @@ export default function InterviewWorkspace({
             const response = await fetch('/api/ai/evaluate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question, selectedOptionIndex }),
+                body: JSON.stringify({
+                    question: currentQuestion,
+                    selectedOptionIndex,
+                    userAnswer: answerText,
+                }),
             });
             const data = await response.json();
             if (!response.ok) {
@@ -143,13 +150,16 @@ export default function InterviewWorkspace({
     }
 
     async function saveAndNext() {
-        if (!session || !evaluation || selectedOptionIndex === null) return;
+        if (!session || !evaluation) return;
+        if (currentQuestion.type === 'mcq' && selectedOptionIndex === null) return;
+        if (currentQuestion.type === 'descriptive' && !answerText.trim()) return;
 
         setSaving(true);
 
         const newAnswer: Answer = {
             questionIndex: currentQ,
-            selectedOptionIndex,
+            text: currentQuestion.type === 'descriptive' ? answerText : undefined,
+            selectedOptionIndex: currentQuestion.type === 'mcq' ? selectedOptionIndex ?? undefined : undefined,
             isCorrect: evaluation.isCorrect,
             score: evaluation.score,
             feedback: evaluation.feedback,
@@ -202,6 +212,7 @@ export default function InterviewWorkspace({
             setSession(updatedSession);
             setCurrentQ(currentQ + 1);
             setSelectedOptionIndex(null);
+            setAnswerText('');
             setNote('');
             setUserDiff('');
             setEvaluation(null);
@@ -267,7 +278,16 @@ export default function InterviewWorkspace({
             <div className="glass-card animate-fade-in" style={{ padding: 28, marginBottom: 20 }}>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
                     <span className="badge badge-blue">{question.category}</span>
-                    <DiffBadge difficulty={question.difficulty} />
+                    <DiffBadge difficulty={currentQuestion.difficulty} />
+                    <span
+                        className="badge"
+                        style={{
+                            background: currentQuestion.type === 'mcq' ? 'rgba(99,102,241,0.14)' : 'rgba(244,114,182,0.14)',
+                            color: currentQuestion.type === 'mcq' ? '#818cf8' : '#f472b6',
+                        }}
+                    >
+                        {currentQuestion.type === 'mcq' ? 'MCQ' : 'Descriptive'}
+                    </span>
                     {mode === 'guest' && (
                         <span className="badge" style={{ background: 'rgba(251,191,36,0.12)', color: '#fbbf24' }}>
                             Guest session
@@ -275,51 +295,68 @@ export default function InterviewWorkspace({
                     )}
                 </div>
                 <p style={{ color: '#e2e8f0', fontSize: '1.05rem', lineHeight: 1.75, fontWeight: 500 }}>
-                    {question.text}
+                    {currentQuestion.text}
                 </p>
             </div>
 
             {!evaluation && (
                 <div className="glass-card animate-fade-in" style={{ padding: 24, marginBottom: 16 }}>
-                    <label style={{ color: '#94a3b8', fontSize: '0.85rem', display: 'block', marginBottom: 12 }}>
-                        Pick the best answer
-                    </label>
-                    <div style={{ display: 'grid', gap: 12 }}>
-                        {question.options.map((option, index) => {
-                            const active = selectedOptionIndex === index;
-                            return (
-                                <button
-                                    key={`${index}-${option}`}
-                                    onClick={() => setSelectedOptionIndex(index)}
-                                    style={{
-                                        padding: '14px 16px',
-                                        borderRadius: 12,
-                                        border: active
-                                            ? '1px solid rgba(56,189,248,0.6)'
-                                            : '1px solid var(--border)',
-                                        background: active ? 'rgba(56,189,248,0.08)' : 'rgba(15,22,41,0.65)',
-                                        color: active ? '#e2e8f0' : '#94a3b8',
-                                        textAlign: 'left',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.15s',
-                                    }}
-                                >
-                                    <div style={{ display: 'flex', gap: 12 }}>
-                                        <span
+                    {currentQuestion.type === 'mcq' ? (
+                        <>
+                            <label style={{ color: '#94a3b8', fontSize: '0.85rem', display: 'block', marginBottom: 12 }}>
+                                Pick the best answer
+                            </label>
+                            <div style={{ display: 'grid', gap: 12 }}>
+                                {(currentQuestion.options ?? []).map((option, index) => {
+                                    const active = selectedOptionIndex === index;
+                                    return (
+                                        <button
+                                            key={`${index}-${option}`}
+                                            onClick={() => setSelectedOptionIndex(index)}
                                             style={{
-                                                color: active ? '#38bdf8' : '#64748b',
-                                                fontWeight: 700,
-                                                minWidth: 18,
+                                                padding: '14px 16px',
+                                                borderRadius: 12,
+                                                border: active
+                                                    ? '1px solid rgba(56,189,248,0.6)'
+                                                    : '1px solid var(--border)',
+                                                background: active ? 'rgba(56,189,248,0.08)' : 'rgba(15,22,41,0.65)',
+                                                color: active ? '#e2e8f0' : '#94a3b8',
+                                                textAlign: 'left',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.15s',
                                             }}
                                         >
-                                            {String.fromCharCode(65 + index)}.
-                                        </span>
-                                        <span style={{ lineHeight: 1.65 }}>{option}</span>
-                                    </div>
-                                </button>
-                            );
-                        })}
-                    </div>
+                                            <div style={{ display: 'flex', gap: 12 }}>
+                                                <span
+                                                    style={{
+                                                        color: active ? '#38bdf8' : '#64748b',
+                                                        fontWeight: 700,
+                                                        minWidth: 18,
+                                                    }}
+                                                >
+                                                    {String.fromCharCode(65 + index)}.
+                                                </span>
+                                                <span style={{ lineHeight: 1.65 }}>{option}</span>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <label style={{ color: '#94a3b8', fontSize: '0.85rem', display: 'block', marginBottom: 8 }}>
+                                Write your answer
+                            </label>
+                            <textarea
+                                className="input"
+                                placeholder="Answer this like you're in a real interview. Explain your reasoning clearly."
+                                value={answerText}
+                                onChange={(e) => setAnswerText(e.target.value)}
+                                style={{ minHeight: 150 }}
+                            />
+                        </>
+                    )}
 
                     {error && (
                         <div
@@ -340,7 +377,10 @@ export default function InterviewWorkspace({
                         <button
                             className="btn-primary"
                             onClick={submitAnswer}
-                            disabled={loading || selectedOptionIndex === null}
+                            disabled={
+                                loading ||
+                                (currentQuestion.type === 'mcq' ? selectedOptionIndex === null : !answerText.trim())
+                            }
                             style={{ padding: '11px 24px' }}
                         >
                             {loading ? (
@@ -357,7 +397,7 @@ export default function InterviewWorkspace({
                 </div>
             )}
 
-            {evaluation && selectedOptionIndex !== null && (
+            {evaluation && (
                 <div className="animate-slide-up">
                     <div className="glass-card" style={{ padding: 24, marginBottom: 16 }}>
                         <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', marginBottom: 20 }}>
@@ -398,9 +438,13 @@ export default function InterviewWorkspace({
                     </div>
 
                     <div className="glass-card" style={{ padding: 20, marginBottom: 16 }}>
-                        <div style={{ color: '#64748b', fontSize: '0.8rem', marginBottom: 6 }}>Your selection</div>
-                        <p style={{ color: '#cbd5e1', fontSize: '0.88rem', lineHeight: 1.7 }}>
-                            {String.fromCharCode(65 + selectedOptionIndex)}. {question.options[selectedOptionIndex]}
+                        <div style={{ color: '#64748b', fontSize: '0.8rem', marginBottom: 6 }}>
+                            {currentQuestion.type === 'mcq' ? 'Your selection' : 'Your answer'}
+                        </div>
+                        <p style={{ color: '#cbd5e1', fontSize: '0.88rem', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                            {currentQuestion.type === 'mcq' && selectedOptionIndex !== null
+                                ? `${String.fromCharCode(65 + selectedOptionIndex)}. ${(currentQuestion.options ?? [])[selectedOptionIndex]}`
+                                : answerText}
                         </p>
                     </div>
 

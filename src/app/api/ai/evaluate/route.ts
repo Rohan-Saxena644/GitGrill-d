@@ -1,19 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { evaluateMcqAnswer } from '@/lib/gemini';
+import { evaluateDescriptiveAnswer, evaluateMcqAnswer } from '@/lib/gemini';
 import { Question } from '@/types';
 
 // POST /api/ai/evaluate
-// Body: { question: Question, selectedOptionIndex: number }
+// Body: { question, selectedOptionIndex? , userAnswer? }
 export async function POST(req: NextRequest) {
     try {
-        const { question, selectedOptionIndex } = (await req.json()) as {
+        const { question, selectedOptionIndex, userAnswer } = (await req.json()) as {
             question?: Question;
             selectedOptionIndex?: number;
+            userAnswer?: string;
         };
 
-        if (!question || typeof selectedOptionIndex !== 'number') {
+        if (!question) {
+            return NextResponse.json({ error: 'question is required' }, { status: 400 });
+        }
+
+        if (question.type === 'descriptive') {
+            if (!userAnswer?.trim()) {
+                return NextResponse.json({ error: 'userAnswer is required' }, { status: 400 });
+            }
+
+            return NextResponse.json(await evaluateDescriptiveAnswer(question, userAnswer));
+        }
+
+        if (typeof selectedOptionIndex !== 'number') {
             return NextResponse.json(
-                { error: 'question and selectedOptionIndex are required' },
+                { error: 'selectedOptionIndex is required for MCQ questions' },
                 { status: 400 }
             );
         }

@@ -15,6 +15,16 @@ function getClient() {
 }
 
 function sanitizeQuestion(question: Question, index: number): Question {
+    if (question.type === 'descriptive') {
+        return {
+            type: 'descriptive',
+            text: question.text?.trim(),
+            category: question.category,
+            difficulty: question.difficulty,
+            explanation: question.explanation?.trim(),
+        };
+    }
+
     const options = Array.isArray(question.options)
         ? question.options.filter((option) => typeof option === 'string' && option.trim()).slice(0, 4)
         : [];
@@ -32,6 +42,7 @@ function sanitizeQuestion(question: Question, index: number): Question {
     }
 
     return {
+        type: 'mcq',
         text: question.text?.trim(),
         category: question.category,
         difficulty: question.difficulty,
@@ -42,7 +53,7 @@ function sanitizeQuestion(question: Question, index: number): Question {
 }
 
 /**
- * Generates 10 interview-practice MCQs from tagged code files.
+ * Generates 10 MCQs followed by 2 descriptive interview questions.
  */
 export async function generateQuestions(
     taggedFiles: TaggedFile[],
@@ -64,15 +75,15 @@ export async function generateQuestions(
 
     const styleInstructions =
         interviewStyle === 'interview'
-            ? `Use a realistic interview tone. The questions should feel slightly sharper, more direct, and closer to what a real interviewer might ask live.`
-            : `Use a coaching-oriented practice tone. The questions should still feel real, but should be framed to help the candidate learn and build confidence.`;
+            ? 'Use a realistic interview tone. Questions should feel direct and close to a real live interview.'
+            : 'Use a coaching-oriented practice tone. Questions should help the candidate build confidence while staying realistic.';
 
     const difficultyMix =
         difficultyPreset === 'beginner-friendly'
-            ? 'Use difficulty mix: 5 Easy, 4 Medium, 1 Hard.'
+            ? 'For the 10 MCQs, use difficulty mix: 5 Easy, 4 Medium, 1 Hard. For the 2 descriptive questions, use 1 Medium and 1 Hard.'
             : difficultyPreset === 'challenging'
-              ? 'Use difficulty mix: 2 Easy, 5 Medium, 3 Hard.'
-              : 'Use difficulty mix: 4 Easy, 4 Medium, 2 Hard.';
+              ? 'For the 10 MCQs, use difficulty mix: 2 Easy, 5 Medium, 3 Hard. For the 2 descriptive questions, both can be Medium or Hard.'
+              : 'For the 10 MCQs, use difficulty mix: 4 Easy, 4 Medium, 2 Hard. For the 2 descriptive questions, use 1 Medium and 1 Hard.';
 
     const difficultyInstructions =
         difficultyPreset === 'beginner-friendly'
@@ -83,7 +94,9 @@ export async function generateQuestions(
 
     const prompt = `You are a senior software engineer creating realistic interview practice.
 The candidate has shared the project "${repoName}".
-Study the code and generate exactly 10 multiple-choice questions for viva and interview preparation.
+Study the code and generate exactly 12 interview-prep questions:
+- The first 10 questions must be multiple-choice questions.
+- The last 2 questions must be descriptive/free-response questions.
 
 Priority focus areas: ${focusAreas.join(', ')}
 Interview style: ${interviewStyle}
@@ -101,13 +114,15 @@ Rules:
 - ${styleInstructions}
 - ${difficultyInstructions}
 - ${difficultyMix}
-- Every question must have exactly 4 options and exactly 1 correct answer.
-- Explanations should teach the candidate how to answer the same idea in a viva.
-- Vary the correct option position. Do not always put the right answer in the same slot.
+- For the 10 MCQs: each must have exactly 4 options and exactly 1 correct answer.
+- For the 2 descriptive questions: options must be an empty array and correctAnswerIndex must be omitted.
+- Explanations should teach the candidate how to answer the same idea in a viva. For descriptive questions, explanation should act like a strong model answer.
+- Vary the correct option position in MCQs.
 
 Respond ONLY with valid JSON in this exact format:
 [
   {
+    "type": "mcq",
     "text": "question text here",
     "category": "Architecture",
     "difficulty": "Medium",
@@ -119,6 +134,14 @@ Respond ONLY with valid JSON in this exact format:
     ],
     "correctAnswerIndex": 1,
     "explanation": "Explain why the correct answer is right, why the distractors are weaker, and how the candidate could say this in an interview."
+  },
+  {
+    "type": "descriptive",
+    "text": "open-ended question here",
+    "category": "Performance",
+    "difficulty": "Hard",
+    "options": [],
+    "explanation": "A strong 3-5 sentence model answer that the candidate could adapt in an interview."
   }
 ]`;
 
@@ -132,8 +155,14 @@ Respond ONLY with valid JSON in this exact format:
 
     try {
         const parsed = JSON.parse(cleaned) as Question[];
-        if (!Array.isArray(parsed) || parsed.length !== 10) {
+        if (!Array.isArray(parsed) || parsed.length !== 12) {
             throw new Error('Model returned an invalid question set size');
+        }
+
+        const mcqCount = parsed.filter((question) => question.type === 'mcq').length;
+        const descriptiveCount = parsed.filter((question) => question.type === 'descriptive').length;
+        if (mcqCount !== 10 || descriptiveCount !== 2) {
+            throw new Error('Model returned the wrong question type mix');
         }
 
         return parsed.map((question, index) => sanitizeQuestion(question, index));
@@ -144,17 +173,69 @@ Respond ONLY with valid JSON in this exact format:
 }
 
 export function evaluateMcqAnswer(question: Question, selectedOptionIndex: number) {
-    const isCorrect = selectedOptionIndex === question.correctAnswerIndex;
-    const correctOption = question.options[question.correctAnswerIndex];
-    const selectedOption = question.options[selectedOptionIndex];
+    const correctAnswerIndex = question.correctAnswerIndex ?? -1;
+    const options = question.options ?? [];
+    const isCorrect = selectedOptionIndex === correctAnswerIndex;
+    const correctOption = options[correctAnswerIndex];
+    const selectedOption = options[selectedOptionIndex];
 
     return {
         isCorrect,
-        correctAnswerIndex: question.correctAnswerIndex,
+        correctAnswerIndex,
         score: isCorrect ? 10 : 4,
         feedback: isCorrect
             ? `Nice job. You picked "${selectedOption}", which lines up with the strongest interview answer.`
             : `You picked "${selectedOption}". The stronger answer was "${correctOption}" because it better reflects the code and the underlying engineering tradeoff.`,
         aiAnswer: `Best answer: "${correctOption}". ${question.explanation}`,
     };
+}
+
+export async function evaluateDescriptiveAnswer(question: Question, userAnswer: string) {
+    const client = getClient();
+
+    const prompt = `You are a senior software engineer evaluating an interview answer.
+
+Question: ${question.text}
+Expected strong answer:
+${question.explanation}
+
+Candidate answer:
+${userAnswer}
+
+Evaluate the candidate's answer fairly and briefly.
+
+Respond ONLY with valid JSON:
+{
+  "score": <number from 1 to 10>,
+  "feedback": "<2-3 sentence feedback on what was good and what was missing>",
+  "aiAnswer": "<a strong 3-5 sentence model answer>",
+  "isCorrect": false
+}`;
+
+    const response = await client.chat.completions.create({
+        model: MODEL,
+        messages: [{ role: 'user', content: prompt }],
+    });
+
+    const text = response.choices[0]?.message?.content ?? '';
+    const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+
+    try {
+        const parsed = JSON.parse(cleaned) as {
+            score: number;
+            feedback: string;
+            aiAnswer: string;
+            isCorrect?: boolean;
+        };
+
+        return {
+            score: parsed.score,
+            feedback: parsed.feedback,
+            aiAnswer: parsed.aiAnswer,
+            isCorrect: parsed.score >= 7,
+        };
+    } catch {
+        console.error('Failed to parse descriptive evaluation response:', cleaned);
+        throw new Error('Model returned malformed JSON. Raw: ' + cleaned.slice(0, 200));
+    }
 }

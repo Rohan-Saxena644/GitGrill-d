@@ -87,8 +87,10 @@ export default function InterviewReview({
         ? answeredScores.reduce((total, score) => total + score, 0) / answeredScores.length
         : 0;
 
+    const mcqQuestions = session.questions.filter((question) => question.type === 'mcq');
+    const descriptiveQuestions = session.questions.filter((question) => question.type === 'descriptive');
     const correctCount = session.answers.filter((answer) => answer.isCorrect).length;
-    const accuracy = session.questions.length ? Math.round((correctCount / session.questions.length) * 100) : 0;
+    const accuracy = mcqQuestions.length ? Math.round((correctCount / mcqQuestions.length) * 100) : 0;
 
     return (
         <div className="page-container" style={{ padding: '32px 24px', maxWidth: 860 }}>
@@ -148,7 +150,7 @@ export default function InterviewReview({
                         {mode === 'guest' ? 'Guest Review' : 'Interview Complete'}
                     </h1>
                     <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
-                        {session.repoOwner}/{session.repoName} · {correctCount} correct out of {session.questions.length}
+                        {session.repoOwner}/{session.repoName} · {correctCount} correct out of {mcqQuestions.length} MCQs, plus {descriptiveQuestions.length} descriptive questions
                     </p>
                 </div>
                 <div style={{ textAlign: 'center' }}>
@@ -161,7 +163,7 @@ export default function InterviewReview({
                     >
                         {accuracy}%
                     </div>
-                    <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>accuracy</div>
+                    <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>mcq accuracy</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
                     <div
@@ -182,9 +184,12 @@ export default function InterviewReview({
                     const answer: Answer | undefined = session.answers.find((entry) => entry.questionIndex === index);
                     const selectedOption =
                         typeof answer?.selectedOptionIndex === 'number'
-                            ? question.options[answer.selectedOptionIndex]
+                            ? question.options?.[answer.selectedOptionIndex]
                             : null;
-                    const correctOption = question.options[question.correctAnswerIndex];
+                    const correctOption =
+                        question.type === 'mcq' && typeof question.correctAnswerIndex === 'number'
+                            ? question.options?.[question.correctAnswerIndex]
+                            : null;
 
                     return (
                         <div key={index} className="glass-card animate-fade-in" style={{ padding: 24 }}>
@@ -211,6 +216,18 @@ export default function InterviewReview({
                                             Q{index + 1}
                                         </span>
                                         <DiffBadge difficulty={question.difficulty} />
+                                        <span
+                                            className="badge"
+                                            style={{
+                                                background:
+                                                    question.type === 'mcq'
+                                                        ? 'rgba(99,102,241,0.14)'
+                                                        : 'rgba(244,114,182,0.14)',
+                                                color: question.type === 'mcq' ? '#818cf8' : '#f472b6',
+                                            }}
+                                        >
+                                            {question.type === 'mcq' ? 'MCQ' : 'Descriptive'}
+                                        </span>
                                         {question.userDifficulty && question.userDifficulty !== question.difficulty && (
                                             <DiffBadge difficulty={question.userDifficulty} label={`felt ${question.userDifficulty}`} />
                                         )}
@@ -225,7 +242,7 @@ export default function InterviewReview({
                                                     color: answer.isCorrect ? '#34d399' : '#f87171',
                                                 }}
                                             >
-                                                {answer.isCorrect ? 'Correct' : 'Needs review'}
+                                                {answer.isCorrect ? 'Strong answer' : 'Needs review'}
                                             </span>
                                         )}
                                     </div>
@@ -249,8 +266,8 @@ export default function InterviewReview({
                                         <div style={{ color: '#64748b', fontSize: '0.78rem', marginBottom: 6 }}>
                                             Your answer
                                         </div>
-                                        <p style={{ color: '#cbd5e1', fontSize: '0.88rem', lineHeight: 1.7 }}>
-                                            {selectedOption ?? 'No option selected'}
+                                        <p style={{ color: '#cbd5e1', fontSize: '0.88rem', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                                            {question.type === 'mcq' ? selectedOption ?? 'No option selected' : answer.text ?? 'No answer submitted'}
                                         </p>
                                     </div>
 
@@ -295,21 +312,23 @@ export default function InterviewReview({
                                         </p>
                                     </div>
 
-                                    <div
-                                        style={{
-                                            padding: '12px 16px',
-                                            borderRadius: 10,
-                                            background: 'rgba(52,211,153,0.05)',
-                                            border: '1px solid rgba(52,211,153,0.18)',
-                                        }}
-                                    >
-                                        <div style={{ color: '#34d399', fontSize: '0.78rem', marginBottom: 6 }}>
-                                            Correct option
+                                    {question.type === 'mcq' && correctOption && (
+                                        <div
+                                            style={{
+                                                padding: '12px 16px',
+                                                borderRadius: 10,
+                                                background: 'rgba(52,211,153,0.05)',
+                                                border: '1px solid rgba(52,211,153,0.18)',
+                                            }}
+                                        >
+                                            <div style={{ color: '#34d399', fontSize: '0.78rem', marginBottom: 6 }}>
+                                                Correct option
+                                            </div>
+                                            <p style={{ color: '#e2e8f0', fontSize: '0.88rem', lineHeight: 1.7 }}>
+                                                {correctOption}
+                                            </p>
                                         </div>
-                                        <p style={{ color: '#e2e8f0', fontSize: '0.88rem', lineHeight: 1.7 }}>
-                                            {correctOption}
-                                        </p>
-                                    </div>
+                                    )}
 
                                     {answer.userNote && (
                                         <div
