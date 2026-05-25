@@ -38,6 +38,9 @@ const SessionSchema = new Schema<ISessionDoc>(
                 text: String,
                 category: String,
                 difficulty: { type: String, enum: ['Easy', 'Medium', 'Hard'] },
+                options: [String],
+                correctAnswerIndex: Number,
+                explanation: String,
                 userDifficulty: { type: String, enum: ['Easy', 'Medium', 'Hard'] },
             },
         ],
@@ -46,6 +49,8 @@ const SessionSchema = new Schema<ISessionDoc>(
             {
                 questionIndex: Number,
                 text: String,
+                selectedOptionIndex: Number,
+                isCorrect: Boolean,
                 score: Number,
                 feedback: String,
                 aiAnswer: String,

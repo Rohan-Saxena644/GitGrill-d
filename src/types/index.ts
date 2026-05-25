@@ -8,6 +8,8 @@ export type Difficulty = 'Easy' | 'Medium' | 'Hard';
 
 export type SessionStatus = 'draft' | 'active' | 'completed';
 
+export type InterviewMode = 'guest' | 'saved';
+
 // A file fetched from GitHub with a tag applied by the user
 export interface TaggedFile {
     path: string;
@@ -19,24 +21,29 @@ export interface TaggedFile {
 export interface Question {
     text: string;
     category: FocusArea;
-    difficulty: Difficulty;           // AI's estimate
-    userDifficulty?: Difficulty;      // user's rating after seeing the question
+    difficulty: Difficulty; // AI's estimate
+    options: string[];
+    correctAnswerIndex: number;
+    explanation: string;
+    userDifficulty?: Difficulty; // user's rating after seeing the question
 }
 
-// A user's answer + AI evaluation for one question
+// A user's answer + evaluation for one question
 export interface Answer {
     questionIndex: number;
-    text: string;            // user's typed answer
-    score?: number;          // 1–10 from AI
-    feedback?: string;       // AI feedback text
-    aiAnswer?: string;       // AI's suggested answer
-    userNote?: string;       // user's own annotation
+    text?: string;
+    selectedOptionIndex?: number;
+    isCorrect?: boolean;
+    score?: number;
+    feedback?: string;
+    aiAnswer?: string;
+    userNote?: string;
 }
 
 // Full interview session stored in MongoDB
 export interface ISession {
     _id?: string;
-    userId: string;
+    userId?: string;
     repoUrl: string;
     repoOwner: string;
     repoName: string;
@@ -47,6 +54,12 @@ export interface ISession {
     status: SessionStatus;
     createdAt?: Date;
     updatedAt?: Date;
+}
+
+export interface GuestSessionState extends Omit<ISession, 'userId'> {
+    mode: 'guest';
+    lastActiveAt: number;
+    expiresAt: number;
 }
 
 // GitHub file tree item returned from the API

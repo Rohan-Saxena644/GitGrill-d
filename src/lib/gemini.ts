@@ -1,34 +1,48 @@
-/**
- * AI helpers — powered by OpenRouter (free tier, no credit card needed).
- * Uses the OpenAI-compatible SDK since OpenRouter supports that interface.
- * Add OPENROUTER_API_KEY to your .env and Vercel environment variables.
- */
-
 import OpenAI from 'openai';
-import { TaggedFile, FocusArea, Question } from '@/types';
+import { FocusArea, Question, TaggedFile } from '@/types';
 
-// openrouter/free automatically picks from all currently available free
-// models — it never 404s even when individual models get removed or
-// rate-limited. DeepSeek V3 is the explicit fallback (confirmed free).
 const MODEL = 'openrouter/auto';
 
-// Lazy client initialization — only created when a function is called,
-// not at module load time. This prevents Vercel build crashes when the
-// env var isn't available during the build phase.
 function getClient() {
     return new OpenAI({
         baseURL: 'https://openrouter.ai/api/v1',
         apiKey: process.env.OPENROUTER_API_KEY!,
         defaultHeaders: {
             'HTTP-Referer': process.env.NEXTAUTH_URL ?? 'http://localhost:3000',
-            'X-Title': 'Code Interviewer',
+            'X-Title': 'CodeViva',
         },
     });
 }
 
+function sanitizeQuestion(question: Question, index: number): Question {
+    const options = Array.isArray(question.options)
+        ? question.options.filter((option) => typeof option === 'string' && option.trim()).slice(0, 4)
+        : [];
+
+    if (options.length !== 4) {
+        throw new Error(`Question ${index + 1} did not include exactly 4 valid options`);
+    }
+
+    if (
+        typeof question.correctAnswerIndex !== 'number' ||
+        question.correctAnswerIndex < 0 ||
+        question.correctAnswerIndex > 3
+    ) {
+        throw new Error(`Question ${index + 1} returned an invalid correctAnswerIndex`);
+    }
+
+    return {
+        text: question.text?.trim(),
+        category: question.category,
+        difficulty: question.difficulty,
+        options,
+        correctAnswerIndex: question.correctAnswerIndex,
+        explanation: question.explanation?.trim(),
+    };
+}
+
 /**
- * Generates interview questions from tagged code files.
- * Returns an array of Question objects.
+ * Generates 10 interview-practice MCQs from tagged code files.
  */
 export async function generateQuestions(
     taggedFiles: TaggedFile[],
@@ -38,31 +52,44 @@ export async function generateQuestions(
     const client = getClient();
 
     const fileContext = taggedFiles
-        .filter((f) => f.content)
-        .map((f) => `### File: ${f.path} (tagged as: ${f.tag})\n\`\`\`\n${f.content}\n\`\`\``)
+        .filter((file) => file.content)
+        .map((file) => `### File: ${file.path} (tagged as: ${file.tag})\n\`\`\`\n${file.content}\n\`\`\``)
         .join('\n\n');
 
-    const prompt = `You are a senior software engineer conducting a technical interview.
-The candidate has shared their GitHub project "${repoName}".
-Study the code below and generate exactly 6 interview questions.
+    const prompt = `You are a senior software engineer creating realistic interview practice.
+The candidate has shared the project "${repoName}".
+Study the code and generate exactly 10 multiple-choice questions for viva and interview preparation.
 
-Focus areas the candidate selected: ${focusAreas.join(', ')}
+Priority focus areas: ${focusAreas.join(', ')}
 
 Code files:
 ${fileContext}
 
 Rules:
-- Ask about SPECIFIC code decisions you see (not generic questions)
-- Reference actual function names, variable names, or patterns from the code
-- Mix difficulty: 2 Easy, 2 Medium, 2 Hard
-- Each question must target one of the selected focus areas
+- Make the questions feel like real technical interviews, not trivia quizzes.
+- Questions should be answerable from practical software understanding and the visible codebase.
+- Avoid obscure framework internals, version trivia, and anything the candidate would need to look up.
+- Prioritize the selected focus areas, but keep the set balanced and realistic.
+- Use code-specific details when helpful, but only when they produce fair questions.
+- Mix difficulty as 4 Easy, 4 Medium, and 2 Hard.
+- Every question must have exactly 4 options and exactly 1 correct answer.
+- Explanations should teach the candidate how to answer the same idea in a viva.
+- Vary the correct option position. Do not always put the right answer in the same slot.
 
-Respond ONLY with valid JSON (no markdown, no explanation), in this exact format:
+Respond ONLY with valid JSON in this exact format:
 [
   {
     "text": "question text here",
     "category": "Architecture",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "options": [
+      "option A",
+      "option B",
+      "option C",
+      "option D"
+    ],
+    "correctAnswerIndex": 1,
+    "explanation": "Explain why the correct answer is right, why the distractors are weaker, and how the candidate could say this in an interview."
   }
 ]`;
 
@@ -75,64 +102,30 @@ Respond ONLY with valid JSON (no markdown, no explanation), in this exact format
     const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 
     try {
-        const questions = JSON.parse(cleaned) as Question[];
-        if (!Array.isArray(questions) || questions.length === 0) {
-            throw new Error('Model returned an empty or invalid questions array');
+        const parsed = JSON.parse(cleaned) as Question[];
+        if (!Array.isArray(parsed) || parsed.length !== 10) {
+            throw new Error('Model returned an invalid question set size');
         }
-        return questions;
+
+        return parsed.map((question, index) => sanitizeQuestion(question, index));
     } catch {
         console.error('Failed to parse response as JSON:', cleaned);
         throw new Error('Model returned malformed JSON. Raw: ' + cleaned.slice(0, 200));
     }
 }
 
-/**
- * Evaluates a user's answer to an interview question.
- * Returns a score (1-10), feedback, and a model answer.
- */
-export async function evaluateAnswer(
-    question: string,
-    userAnswer: string,
-    fileContext: string
-): Promise<{ score: number; feedback: string; aiAnswer: string }> {
-    const client = getClient();
+export function evaluateMcqAnswer(question: Question, selectedOptionIndex: number) {
+    const isCorrect = selectedOptionIndex === question.correctAnswerIndex;
+    const correctOption = question.options[question.correctAnswerIndex];
+    const selectedOption = question.options[selectedOptionIndex];
 
-    const prompt = `You are a senior software engineer evaluating an interview answer.
-
-Question: ${question}
-
-Relevant code context:
-\`\`\`
-${fileContext.slice(0, 3000)}
-\`\`\`
-
-Candidate's answer: ${userAnswer}
-
-Evaluate the answer. Be fair but honest.
-
-Respond ONLY with valid JSON (no markdown, no explanation):
-{
-  "score": <number from 1 to 10>,
-  "feedback": "<2-3 sentence feedback on what was good/missing>",
-  "aiAnswer": "<a strong 3-5 sentence model answer for this question>"
-}`;
-
-    const response = await client.chat.completions.create({
-        model: MODEL,
-        messages: [{ role: 'user', content: prompt }],
-    });
-
-    const text = response.choices[0]?.message?.content ?? '';
-    const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-
-    try {
-        const result = JSON.parse(cleaned);
-        if (typeof result.score !== 'number' || !result.feedback || !result.aiAnswer) {
-            throw new Error('Model returned incomplete evaluation fields');
-        }
-        return result;
-    } catch {
-        console.error('Failed to parse evaluation response:', cleaned);
-        throw new Error('Model returned malformed JSON. Raw: ' + cleaned.slice(0, 200));
-    }
+    return {
+        isCorrect,
+        correctAnswerIndex: question.correctAnswerIndex,
+        score: isCorrect ? 10 : 4,
+        feedback: isCorrect
+            ? `Nice job. You picked "${selectedOption}", which lines up with the strongest interview answer.`
+            : `You picked "${selectedOption}". The stronger answer was "${correctOption}" because it better reflects the code and the underlying engineering tradeoff.`,
+        aiAnswer: `Best answer: "${correctOption}". ${question.explanation}`,
+    };
 }

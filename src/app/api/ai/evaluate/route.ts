@@ -1,28 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { evaluateAnswer } from '@/lib/gemini';
+import { evaluateMcqAnswer } from '@/lib/gemini';
+import { Question } from '@/types';
 
 // POST /api/ai/evaluate
-// Body: { question: string, userAnswer: string, fileContext: string }
-// Returns: { score, feedback, aiAnswer }
+// Body: { question: Question, selectedOptionIndex: number }
 export async function POST(req: NextRequest) {
     try {
-        const authSession = await getServerSession(authOptions);
-        if (!authSession?.user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const { question, selectedOptionIndex } = (await req.json()) as {
+            question?: Question;
+            selectedOptionIndex?: number;
+        };
+
+        if (!question || typeof selectedOptionIndex !== 'number') {
+            return NextResponse.json(
+                { error: 'question and selectedOptionIndex are required' },
+                { status: 400 }
+            );
         }
 
-        const { question, userAnswer, fileContext } = await req.json();
-
-        if (!question || !userAnswer) {
-            return NextResponse.json({ error: 'question and userAnswer are required' }, { status: 400 });
+        if (!Array.isArray(question.options) || question.options.length !== 4) {
+            return NextResponse.json({ error: 'Question is missing valid options' }, { status: 400 });
         }
 
-        const result = await evaluateAnswer(question, userAnswer, fileContext ?? '');
-        return NextResponse.json(result);
-    } catch (e: any) {
-        console.error('Error evaluating answer:', e);
-        return NextResponse.json({ error: e.message || 'Internal Server Error' }, { status: 500 });
+        if (selectedOptionIndex < 0 || selectedOptionIndex > 3) {
+            return NextResponse.json({ error: 'Invalid selected option' }, { status: 400 });
+        }
+
+        return NextResponse.json(evaluateMcqAnswer(question, selectedOptionIndex));
+    } catch (error: any) {
+        console.error('Error evaluating answer:', error);
+        return NextResponse.json(
+            { error: error.message || 'Internal Server Error' },
+            { status: 500 }
+        );
     }
 }

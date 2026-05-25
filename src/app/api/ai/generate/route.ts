@@ -5,56 +5,78 @@ import connectDB from '@/lib/mongoose';
 import Session from '@/models/Session';
 import { getFileContent } from '@/lib/github';
 import { generateQuestions } from '@/lib/gemini';
-import { TaggedFile, FocusArea } from '@/types';
+import { FocusArea, TaggedFile } from '@/types';
+
+async function buildFilesWithContent(
+    repoOwner: string,
+    repoName: string,
+    taggedFiles: TaggedFile[]
+): Promise<TaggedFile[]> {
+    return Promise.all(
+        taggedFiles.map(async (file) => {
+            const content = await getFileContent(repoOwner, repoName, file.path);
+            return {
+                path: file.path,
+                tag: file.tag,
+                content: content ?? '// content unavailable',
+            };
+        })
+    );
+}
 
 // POST /api/ai/generate
-// Body: { sessionId: string }
-// Fetches tagged files from DB, calls Gemini, saves questions back to DB
+// Authenticated: { sessionId }
+// Guest: { repoOwner, repoName, taggedFiles, focusAreas }
 export async function POST(req: NextRequest) {
     try {
         const authSession = await getServerSession(authOptions);
-        if (!authSession?.user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const body = await req.json();
+
+        if (body.sessionId) {
+            if (!authSession?.user) {
+                return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            }
+
+            const userId = (authSession.user as { userId?: string }).userId;
+
+            await connectDB();
+            const doc = await Session.findOne({ _id: body.sessionId, userId });
+            if (!doc) {
+                return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+            }
+
+            const filesWithContent = await buildFilesWithContent(doc.repoOwner, doc.repoName, doc.taggedFiles);
+            const questions = await generateQuestions(
+                filesWithContent,
+                doc.focusAreas as FocusArea[],
+                doc.repoName
+            );
+
+            doc.questions = questions as typeof doc.questions;
+            doc.status = 'active';
+            await doc.save();
+
+            return NextResponse.json({ questions });
         }
 
-        const userId = (authSession.user as { userId?: string }).userId;
-        const { sessionId } = await req.json();
+        const { repoOwner, repoName, taggedFiles, focusAreas } = body;
 
-        await connectDB();
-        const doc = await Session.findOne({ _id: sessionId, userId });
-        if (!doc) {
-            return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+        if (!repoOwner || !repoName || !Array.isArray(taggedFiles) || !Array.isArray(focusAreas)) {
+            return NextResponse.json({ error: 'Missing guest interview inputs' }, { status: 400 });
         }
 
-        // Fetch actual file contents from GitHub for each tagged file.
-        // Use plain object destructuring instead of spreading the Mongoose subdocument
-        // to avoid prototype/internal fields corrupting the content field.
-        const filesWithContent: TaggedFile[] = await Promise.all(
-            doc.taggedFiles.map(async (f: TaggedFile) => {
-                const content = await getFileContent(doc.repoOwner, doc.repoName, f.path);
-                return {
-                    path: f.path,
-                    tag: f.tag,
-                    content: content ?? '// content unavailable',
-                };
-            })
+        const filesWithContent = await buildFilesWithContent(repoOwner, repoName, taggedFiles);
+        const questions = await generateQuestions(filesWithContent, focusAreas as FocusArea[], repoName);
+
+        return NextResponse.json({
+            questions,
+            taggedFiles: filesWithContent,
+        });
+    } catch (error: any) {
+        console.error('Error generating questions:', error);
+        return NextResponse.json(
+            { error: error.message || 'Internal Server Error' },
+            { status: 500 }
         );
-
-        // Generate questions using Gemini
-        const questions = await generateQuestions(
-            filesWithContent,
-            doc.focusAreas as FocusArea[],
-            doc.repoName
-        );
-
-        // Save questions to the session and mark as active
-        doc.questions = questions as typeof doc.questions;
-        doc.status = 'active';
-        await doc.save();
-
-        return NextResponse.json({ questions });
-    } catch (e: any) {
-        console.error('Error generating questions:', e);
-        return NextResponse.json({ error: e.message || 'Internal Server Error' }, { status: 500 });
     }
 }

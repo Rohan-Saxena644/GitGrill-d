@@ -2,6 +2,7 @@
 
 import { SessionProvider } from 'next-auth/react';
 import { Session } from 'next-auth';
+import GuestSessionManager from '@/components/GuestSessionManager';
 
 /**
  * Client-side wrapper that provides the NextAuth session to all child components.
@@ -15,5 +16,10 @@ export default function Providers({
     children: React.ReactNode;
     session: Session | null;
 }) {
-    return <SessionProvider session={session}>{children}</SessionProvider>;
+    return (
+        <SessionProvider session={session}>
+            <GuestSessionManager />
+            {children}
+        </SessionProvider>
+    );
 }
