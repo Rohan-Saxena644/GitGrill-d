@@ -5,7 +5,14 @@ import connectDB from '@/lib/mongoose';
 import Session from '@/models/Session';
 import { getFileContent } from '@/lib/github';
 import { generateQuestions } from '@/lib/gemini';
-import { DifficultyPreset, FocusArea, InterviewStyle, TaggedFile } from '@/types';
+import {
+    DifficultyPreset,
+    FocusArea,
+    InterviewStyle,
+    InterviewTrack,
+    SystemTopic,
+    TaggedFile,
+} from '@/types';
 
 async function buildFilesWithContent(
     repoOwner: string,
@@ -45,12 +52,17 @@ export async function POST(req: NextRequest) {
                 return NextResponse.json({ error: 'Session not found' }, { status: 404 });
             }
 
-            const filesWithContent = await buildFilesWithContent(doc.repoOwner, doc.repoName, doc.taggedFiles);
+            const isSystemsTrack = (doc.interviewTrack as InterviewTrack | undefined) === 'systems';
+            const filesWithContent = isSystemsTrack
+                ? []
+                : await buildFilesWithContent(doc.repoOwner, doc.repoName, doc.taggedFiles);
             const questions = await generateQuestions(
                 filesWithContent,
                 doc.focusAreas as FocusArea[],
                 doc.repoName,
                 {
+                    interviewTrack: doc.interviewTrack as InterviewTrack | undefined,
+                    systemTopics: doc.systemTopics as SystemTopic[] | undefined,
                     interviewStyle: doc.interviewStyle as InterviewStyle | undefined,
                     difficultyPreset: doc.difficultyPreset as DifficultyPreset | undefined,
                 }
@@ -63,14 +75,28 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ questions });
         }
 
-        const { repoOwner, repoName, taggedFiles, focusAreas, interviewStyle, difficultyPreset } = body;
+        const {
+            repoOwner,
+            repoName,
+            taggedFiles,
+            focusAreas,
+            interviewTrack,
+            systemTopics,
+            interviewStyle,
+            difficultyPreset,
+        } = body;
 
-        if (!repoOwner || !repoName || !Array.isArray(taggedFiles) || !Array.isArray(focusAreas)) {
+        if (!repoOwner || !repoName || !Array.isArray(focusAreas)) {
             return NextResponse.json({ error: 'Missing guest interview inputs' }, { status: 400 });
         }
 
-        const filesWithContent = await buildFilesWithContent(repoOwner, repoName, taggedFiles);
+        const filesWithContent =
+            interviewTrack === 'systems'
+                ? []
+                : await buildFilesWithContent(repoOwner, repoName, taggedFiles as TaggedFile[]);
         const questions = await generateQuestions(filesWithContent, focusAreas as FocusArea[], repoName, {
+            interviewTrack: interviewTrack as InterviewTrack | undefined,
+            systemTopics: systemTopics as SystemTopic[] | undefined,
             interviewStyle: interviewStyle as InterviewStyle | undefined,
             difficultyPreset: difficultyPreset as DifficultyPreset | undefined,
         });

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { evaluateDescriptiveAnswer, evaluateMcqAnswer } from '@/lib/gemini';
+import { evaluateMcqAnswer, evaluateOpenEndedAnswer } from '@/lib/gemini';
 import { Question } from '@/types';
 
 // POST /api/ai/evaluate
@@ -16,12 +16,12 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'question is required' }, { status: 400 });
         }
 
-        if (question.type === 'descriptive') {
+        if (question.type !== 'mcq') {
             if (!userAnswer?.trim()) {
                 return NextResponse.json({ error: 'userAnswer is required' }, { status: 400 });
             }
 
-            return NextResponse.json(await evaluateDescriptiveAnswer(question, userAnswer));
+            return NextResponse.json(await evaluateOpenEndedAnswer(question, userAnswer));
         }
 
         if (typeof selectedOptionIndex !== 'number') {

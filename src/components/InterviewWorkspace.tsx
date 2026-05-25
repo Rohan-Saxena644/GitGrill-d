@@ -282,11 +282,25 @@ export default function InterviewWorkspace({
                     <span
                         className="badge"
                         style={{
-                            background: currentQuestion.type === 'mcq' ? 'rgba(99,102,241,0.14)' : 'rgba(244,114,182,0.14)',
-                            color: currentQuestion.type === 'mcq' ? '#818cf8' : '#f472b6',
+                            background:
+                                currentQuestion.type === 'mcq'
+                                    ? 'rgba(99,102,241,0.14)'
+                                    : currentQuestion.type === 'short-answer'
+                                      ? 'rgba(45,212,191,0.14)'
+                                      : 'rgba(244,114,182,0.14)',
+                            color:
+                                currentQuestion.type === 'mcq'
+                                    ? '#818cf8'
+                                    : currentQuestion.type === 'short-answer'
+                                      ? '#2dd4bf'
+                                      : '#f472b6',
                         }}
                     >
-                        {currentQuestion.type === 'mcq' ? 'MCQ' : 'Descriptive'}
+                        {currentQuestion.type === 'mcq'
+                            ? 'MCQ'
+                            : currentQuestion.type === 'short-answer'
+                              ? 'Short Answer'
+                              : 'Descriptive'}
                     </span>
                     {mode === 'guest' && (
                         <span className="badge" style={{ background: 'rgba(251,191,36,0.12)', color: '#fbbf24' }}>
@@ -346,14 +360,18 @@ export default function InterviewWorkspace({
                     ) : (
                         <>
                             <label style={{ color: '#94a3b8', fontSize: '0.85rem', display: 'block', marginBottom: 8 }}>
-                                Write your answer
+                                {currentQuestion.type === 'short-answer' ? 'Write a compact answer' : 'Write your answer'}
                             </label>
                             <textarea
                                 className="input"
-                                placeholder="Answer this like you're in a real interview. Explain your reasoning clearly."
+                                placeholder={
+                                    currentQuestion.type === 'short-answer'
+                                        ? "Answer this like a quick live interview response in 2-4 sentences."
+                                        : "Answer this like you're in a real interview. Explain your reasoning clearly."
+                                }
                                 value={answerText}
                                 onChange={(e) => setAnswerText(e.target.value)}
-                                style={{ minHeight: 150 }}
+                                style={{ minHeight: currentQuestion.type === 'short-answer' ? 120 : 150 }}
                             />
                         </>
                     )}

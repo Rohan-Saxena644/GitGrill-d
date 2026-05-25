@@ -7,6 +7,8 @@ import {
     SessionStatus,
     InterviewStyle,
     DifficultyPreset,
+    InterviewTrack,
+    SystemTopic,
 } from '@/types';
 
 // The shape of a Session document in MongoDB
@@ -17,6 +19,8 @@ export interface ISessionDoc extends Document {
     repoName: string;
     taggedFiles: TaggedFile[];
     focusAreas: FocusArea[];
+    interviewTrack?: InterviewTrack;
+    systemTopics?: SystemTopic[];
     interviewStyle?: InterviewStyle;
     difficultyPreset?: DifficultyPreset;
     questions: Question[];
@@ -42,6 +46,8 @@ const SessionSchema = new Schema<ISessionDoc>(
         ],
 
         focusAreas: [{ type: String }],
+        interviewTrack: { type: String, enum: ['repo-viva', 'systems'], default: 'repo-viva' },
+        systemTopics: [{ type: String }],
         interviewStyle: { type: String, enum: ['practice', 'interview'], default: 'practice' },
         difficultyPreset: {
             type: String,
@@ -51,7 +57,7 @@ const SessionSchema = new Schema<ISessionDoc>(
 
         questions: [
             {
-                type: { type: String, enum: ['mcq', 'descriptive'], default: 'mcq' },
+                type: { type: String, enum: ['mcq', 'short-answer', 'descriptive'], default: 'mcq' },
                 text: String,
                 category: String,
                 difficulty: { type: String, enum: ['Easy', 'Medium', 'Hard'] },

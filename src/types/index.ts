@@ -5,13 +5,21 @@ export type FileTag = 'core-logic' | 'boilerplate' | 'config' | 'tests' | 'untag
 export type FocusArea = 'Architecture' | 'Error Handling' | 'Performance' | 'Security';
 
 export type Difficulty = 'Easy' | 'Medium' | 'Hard';
-export type QuestionType = 'mcq' | 'descriptive';
+export type QuestionType = 'mcq' | 'short-answer' | 'descriptive';
 
 export type SessionStatus = 'draft' | 'active' | 'completed';
 
 export type InterviewMode = 'guest' | 'saved';
 export type InterviewStyle = 'practice' | 'interview';
 export type DifficultyPreset = 'beginner-friendly' | 'balanced' | 'challenging';
+export type InterviewTrack = 'repo-viva' | 'systems';
+export type SystemTopic =
+    | 'Message Queue / Async Processing'
+    | 'Graph / Recommendations / Connections'
+    | 'Caching / Rate Limiting'
+    | 'Notifications / Feed Fanout'
+    | 'Search / Indexing'
+    | 'Data Modeling / Consistency';
 
 // A file fetched from GitHub with a tag applied by the user
 export interface TaggedFile {
@@ -53,6 +61,8 @@ export interface ISession {
     repoName: string;
     taggedFiles: TaggedFile[];
     focusAreas: FocusArea[];
+    interviewTrack?: InterviewTrack;
+    systemTopics?: SystemTopic[];
     interviewStyle?: InterviewStyle;
     difficultyPreset?: DifficultyPreset;
     questions: Question[];

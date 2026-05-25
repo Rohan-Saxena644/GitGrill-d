@@ -37,20 +37,32 @@ export async function POST(req: NextRequest) {
 
         const userId = (session.user as { userId?: string }).userId;
         const body = await req.json();
-        const { repoUrl, repoOwner, repoName, taggedFiles, focusAreas, interviewStyle, difficultyPreset } = body;
+        const {
+            repoUrl,
+            repoOwner,
+            repoName,
+            taggedFiles,
+            focusAreas,
+            interviewTrack,
+            systemTopics,
+            interviewStyle,
+            difficultyPreset,
+        } = body;
 
-        if (!repoUrl || !repoOwner || !repoName) {
+        if ((interviewTrack ?? 'repo-viva') === 'repo-viva' && (!repoUrl || !repoOwner || !repoName)) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
         await connectDB();
         const newSession = await Session.create({
             userId,
-            repoUrl,
-            repoOwner,
-            repoName,
+            repoUrl: repoUrl ?? 'systems://track',
+            repoOwner: repoOwner ?? 'Systems',
+            repoName: repoName ?? 'Real-World Engineering',
             taggedFiles: taggedFiles ?? [],
             focusAreas: focusAreas ?? [],
+            interviewTrack: interviewTrack ?? 'repo-viva',
+            systemTopics: systemTopics ?? [],
             interviewStyle: interviewStyle ?? 'practice',
             difficultyPreset: difficultyPreset ?? 'balanced',
             questions: [],

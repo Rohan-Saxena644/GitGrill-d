@@ -222,11 +222,22 @@ export default function InterviewReview({
                                                 background:
                                                     question.type === 'mcq'
                                                         ? 'rgba(99,102,241,0.14)'
+                                                        : question.type === 'short-answer'
+                                                          ? 'rgba(45,212,191,0.14)'
                                                         : 'rgba(244,114,182,0.14)',
-                                                color: question.type === 'mcq' ? '#818cf8' : '#f472b6',
+                                                color:
+                                                    question.type === 'mcq'
+                                                        ? '#818cf8'
+                                                        : question.type === 'short-answer'
+                                                          ? '#2dd4bf'
+                                                          : '#f472b6',
                                             }}
                                         >
-                                            {question.type === 'mcq' ? 'MCQ' : 'Descriptive'}
+                                            {question.type === 'mcq'
+                                                ? 'MCQ'
+                                                : question.type === 'short-answer'
+                                                  ? 'Short Answer'
+                                                  : 'Descriptive'}
                                         </span>
                                         {question.userDifficulty && question.userDifficulty !== question.difficulty && (
                                             <DiffBadge difficulty={question.userDifficulty} label={`felt ${question.userDifficulty}`} />

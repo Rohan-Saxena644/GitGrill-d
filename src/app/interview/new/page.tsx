@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import {
@@ -10,14 +10,33 @@ import {
     Chrome,
     GitBranch,
     Github,
+    Layers3,
     Loader2,
     Tag,
     Target,
 } from 'lucide-react';
 import { createGuestSession, saveGuestSession } from '@/lib/guest-session';
-import { DifficultyPreset, FileTag, FocusArea, GitHubFile, ISession, InterviewStyle } from '@/types';
+import {
+    DifficultyPreset,
+    FileTag,
+    FocusArea,
+    GitHubFile,
+    ISession,
+    InterviewStyle,
+    InterviewTrack,
+    SystemTopic,
+} from '@/types';
 
 const FOCUS_AREAS: FocusArea[] = ['Architecture', 'Error Handling', 'Performance', 'Security'];
+
+const SYSTEM_TOPIC_OPTIONS: SystemTopic[] = [
+    'Message Queue / Async Processing',
+    'Graph / Recommendations / Connections',
+    'Caching / Rate Limiting',
+    'Notifications / Feed Fanout',
+    'Search / Indexing',
+    'Data Modeling / Consistency',
+];
 
 const TAG_OPTIONS: { value: FileTag; label: string; color: string }[] = [
     { value: 'untagged', label: 'Skip', color: '#64748b' },
@@ -25,6 +44,26 @@ const TAG_OPTIONS: { value: FileTag; label: string; color: string }[] = [
     { value: 'boilerplate', label: 'Boilerplate', color: '#94a3b8' },
     { value: 'config', label: 'Config', color: '#fbbf24' },
     { value: 'tests', label: 'Tests', color: '#34d399' },
+];
+
+const TRACK_OPTIONS: {
+    value: InterviewTrack;
+    title: string;
+    description: string;
+    icon: React.ReactNode;
+}[] = [
+    {
+        value: 'repo-viva',
+        title: 'Repo Viva Track',
+        description: 'Interview questions based on your tagged GitHub project files.',
+        icon: <GitBranch size={18} />,
+    },
+    {
+        value: 'systems',
+        title: 'Systems Track',
+        description: 'Scenario-based product engineering and system design practice.',
+        icon: <Layers3 size={18} />,
+    },
 ];
 
 const INTERVIEW_STYLE_OPTIONS: {
@@ -52,17 +91,17 @@ const DIFFICULTY_PRESET_OPTIONS: {
     {
         value: 'beginner-friendly',
         title: 'Beginner Friendly',
-        description: 'More approachable questions with just one truly hard one.',
+        description: 'More approachable questions with a softer ramp into deeper systems ideas.',
     },
     {
         value: 'balanced',
         title: 'Balanced',
-        description: 'A steady mix of easy, medium, and hard questions.',
+        description: 'A steady mix of easier checks, short answers, and deeper tradeoff questions.',
     },
     {
         value: 'challenging',
         title: 'Challenging',
-        description: 'More tradeoffs, deeper reasoning, and tougher interview-style questions.',
+        description: 'More tradeoffs, sharper scenarios, and tougher interview-style questions.',
     },
 ];
 
@@ -71,16 +110,29 @@ export default function NewInterviewPage() {
     const router = useRouter();
 
     const [step, setStep] = useState<1 | 2 | 3>(1);
+    const [track, setTrack] = useState<InterviewTrack>('repo-viva');
     const [repoUrl, setRepoUrl] = useState('');
     const [repoOwner, setRepoOwner] = useState('');
     const [repoName, setRepoName] = useState('');
     const [files, setFiles] = useState<GitHubFile[]>([]);
     const [tags, setTags] = useState<Record<string, FileTag>>({});
     const [focusAreas, setFocusAreas] = useState<FocusArea[]>([]);
+    const [systemTopics, setSystemTopics] = useState<SystemTopic[]>([
+        'Message Queue / Async Processing',
+        'Graph / Recommendations / Connections',
+    ]);
     const [interviewStyle, setInterviewStyle] = useState<InterviewStyle>('practice');
     const [difficultyPreset, setDifficultyPreset] = useState<DifficultyPreset>('balanced');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const stepConfig = useMemo(
+        () => [
+            { n: 1, label: track === 'repo-viva' ? 'Track & Repo' : 'Choose Track', icon: <GitBranch size={14} /> },
+            { n: 2, label: track === 'repo-viva' ? 'Tag Files' : 'Choose Topics', icon: <Tag size={14} /> },
+            { n: 3, label: 'Tune & Generate', icon: <Target size={14} /> },
+        ],
+        [track]
+    );
 
     if (status === 'loading') {
         return (
@@ -91,7 +143,7 @@ export default function NewInterviewPage() {
     }
 
     async function fetchFiles() {
-        if (loading) return;
+        if (loading || track !== 'repo-viva') return;
         setError('');
         setLoading(true);
 
@@ -121,36 +173,67 @@ export default function NewInterviewPage() {
         }
     }
 
+    function continueFromStepOne() {
+        if (track === 'repo-viva') {
+            fetchFiles();
+            return;
+        }
+        setStep(2);
+    }
+
     async function generateQuestions() {
         if (loading) return;
         setError('');
         setLoading(true);
 
         try {
-            const taggedFiles = Object.entries(tags)
-                .filter(([, tag]) => tag !== 'untagged')
-                .map(([path, tag]) => ({ path, tag }));
+            const taggedFiles =
+                track === 'repo-viva'
+                    ? Object.entries(tags)
+                          .filter(([, tag]) => tag !== 'untagged')
+                          .map(([path, tag]) => ({ path, tag }))
+                    : [];
 
-            if (taggedFiles.length === 0) {
+            if (track === 'repo-viva' && taggedFiles.length === 0) {
                 throw new Error('Please tag at least one file as something other than Skip.');
             }
             if (focusAreas.length === 0) {
                 throw new Error('Please select at least one focus area.');
             }
+            if (track === 'systems' && systemTopics.length === 0) {
+                throw new Error('Please select at least one systems topic.');
+            }
+
+            const createPayload =
+                track === 'repo-viva'
+                    ? {
+                          repoUrl,
+                          repoOwner,
+                          repoName,
+                          taggedFiles,
+                          focusAreas,
+                          interviewTrack: track,
+                          systemTopics,
+                          interviewStyle,
+                          difficultyPreset,
+                      }
+                    : {
+                          repoUrl: 'systems://track',
+                          repoOwner: 'Systems',
+                          repoName: 'Real-World Engineering',
+                          taggedFiles: [],
+                          focusAreas,
+                          interviewTrack: track,
+                          systemTopics,
+                          interviewStyle,
+                          difficultyPreset,
+                      };
 
             if (session) {
                 const createRes = await fetch('/api/sessions', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        repoUrl,
-                        repoOwner,
-                        repoName,
-                        taggedFiles,
-                        focusAreas,
-                        interviewStyle,
-                        difficultyPreset,
-                    }),
+                    body: JSON.stringify(createPayload),
                 });
                 const savedSession = await createRes.json();
                 if (!createRes.ok) throw new Error(savedSession.error ?? 'Failed to create session');
@@ -171,10 +254,12 @@ export default function NewInterviewPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    repoOwner,
-                    repoName,
+                    repoOwner: track === 'repo-viva' ? repoOwner : 'Systems',
+                    repoName: track === 'repo-viva' ? repoName : 'Real-World Engineering',
                     taggedFiles,
                     focusAreas,
+                    interviewTrack: track,
+                    systemTopics,
                     interviewStyle,
                     difficultyPreset,
                 }),
@@ -184,11 +269,13 @@ export default function NewInterviewPage() {
 
             const guestSession = createGuestSession({
                 _id: 'guest',
-                repoUrl,
-                repoOwner,
-                repoName,
+                repoUrl: track === 'repo-viva' ? repoUrl : 'systems://track',
+                repoOwner: track === 'repo-viva' ? repoOwner : 'Systems',
+                repoName: track === 'repo-viva' ? repoName : 'Real-World Engineering',
                 taggedFiles: generated.taggedFiles ?? taggedFiles,
                 focusAreas,
+                interviewTrack: track,
+                systemTopics,
                 interviewStyle,
                 difficultyPreset,
                 questions: generated.questions,
@@ -207,14 +294,8 @@ export default function NewInterviewPage() {
 
     const taggedCount = Object.values(tags).filter((tag) => tag !== 'untagged').length;
 
-    const stepConfig = [
-        { n: 1, label: 'Repo URL', icon: <GitBranch size={14} /> },
-        { n: 2, label: 'Tag Files', icon: <Tag size={14} /> },
-        { n: 3, label: 'Focus & Generate', icon: <Target size={14} /> },
-    ];
-
     return (
-        <div className="page-container" style={{ padding: 'clamp(24px,5vw,48px) 16px', maxWidth: 920 }}>
+        <div className="page-container" style={{ padding: 'clamp(24px,5vw,48px) 16px', maxWidth: 940 }}>
             {!session && (
                 <div
                     className="glass-card"
@@ -229,12 +310,10 @@ export default function NewInterviewPage() {
                     }}
                 >
                     <div>
-                        <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 4 }}>
-                            Guest mode is on
-                        </div>
+                        <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 4 }}>Guest mode is on</div>
                         <p style={{ color: '#94a3b8', fontSize: '0.86rem', lineHeight: 1.6 }}>
-                            You can complete the full 10-question interview without logging in. Guest results are not
-                            saved and disappear after 15 minutes of inactivity.
+                            You can complete the full interview without logging in. Guest results are not saved and
+                            disappear after 15 minutes of inactivity.
                         </p>
                     </div>
                     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -311,79 +390,114 @@ export default function NewInterviewPage() {
 
             {step === 1 && (
                 <div className="glass-card animate-fade-in" style={{ padding: 'clamp(20px,5vw,32px)' }}>
-                    <h2
-                        style={{
-                            color: '#e2e8f0',
-                            fontWeight: 700,
-                            fontSize: 'clamp(1.1rem,3vw,1.4rem)',
-                            marginBottom: 8,
-                        }}
-                    >
-                        Paste your GitHub repo URL
+                    <h2 style={{ color: '#e2e8f0', fontWeight: 700, fontSize: 'clamp(1.1rem,3vw,1.4rem)', marginBottom: 8 }}>
+                        Choose your track
                     </h2>
                     <p style={{ color: '#94a3b8', marginBottom: 24, fontSize: '0.875rem' }}>
-                        Public repositories work best. We read the file list first, then fetch only the tagged files
-                        when generating your 10-question practice set.
+                        Pick between repo-based viva prep and a systems track with scenario questions that need fuller interview-style answers.
                     </p>
-                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                        <input
-                            className="input"
-                            placeholder="https://github.com/username/repository"
-                            value={repoUrl}
-                            onChange={(e) => setRepoUrl(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && fetchFiles()}
-                            style={{ flex: '1 1 240px', minWidth: 0 }}
-                        />
-                        <button
-                            className="btn-primary"
-                            onClick={fetchFiles}
-                            disabled={loading || !repoUrl.trim()}
-                            style={{ flexShrink: 0, justifyContent: 'center' }}
-                        >
-                            {loading ? <Loader2 className="spinner" /> : <><ChevronRight size={18} /> Fetch Files</>}
-                        </button>
+
+                    <div
+                        style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%,260px), 1fr))',
+                            gap: 12,
+                            marginBottom: 24,
+                        }}
+                    >
+                        {TRACK_OPTIONS.map((option) => {
+                            const active = track === option.value;
+                            return (
+                                <button
+                                    key={option.value}
+                                    onClick={() => {
+                                        setTrack(option.value);
+                                        setError('');
+                                    }}
+                                    style={{
+                                        padding: '18px',
+                                        borderRadius: 14,
+                                        border: active ? '1px solid rgba(56,189,248,0.6)' : '1px solid var(--border)',
+                                        background: active ? 'rgba(56,189,248,0.08)' : 'rgba(19,29,53,0.4)',
+                                        color: '#e2e8f0',
+                                        cursor: 'pointer',
+                                        textAlign: 'left',
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                                        <span style={{ color: active ? '#38bdf8' : '#94a3b8' }}>{option.icon}</span>
+                                        <span style={{ fontWeight: 600 }}>{option.title}</span>
+                                    </div>
+                                    <div style={{ color: '#94a3b8', fontSize: '0.84rem', lineHeight: 1.6 }}>
+                                        {option.description}
+                                    </div>
+                                </button>
+                            );
+                        })}
                     </div>
-                    <p style={{ color: '#64748b', fontSize: '0.78rem', marginTop: 10 }}>
-                        Example: https://github.com/vercel/next.js
-                    </p>
+
+                    {track === 'repo-viva' ? (
+                        <>
+                            <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 8 }}>Paste your GitHub repo URL</div>
+                            <p style={{ color: '#94a3b8', marginBottom: 18, fontSize: '0.875rem' }}>
+                                Public repositories work best. This track generates 10 MCQs plus 2 descriptive questions from your tagged files.
+                            </p>
+                            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                                <input
+                                    className="input"
+                                    placeholder="https://github.com/username/repository"
+                                    value={repoUrl}
+                                    onChange={(e) => setRepoUrl(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && continueFromStepOne()}
+                                    style={{ flex: '1 1 240px', minWidth: 0 }}
+                                />
+                                <button
+                                    className="btn-primary"
+                                    onClick={continueFromStepOne}
+                                    disabled={loading || !repoUrl.trim()}
+                                    style={{ flexShrink: 0, justifyContent: 'center' }}
+                                >
+                                    {loading ? <Loader2 className="spinner" /> : <><ChevronRight size={18} /> Fetch Files</>}
+                                </button>
+                            </div>
+                        </>
+                    ) : (
+                        <div
+                            style={{
+                                padding: '14px 16px',
+                                borderRadius: 12,
+                                background: 'rgba(56,189,248,0.05)',
+                                border: '1px solid rgba(56,189,248,0.12)',
+                                color: '#94a3b8',
+                                fontSize: '0.86rem',
+                                lineHeight: 1.65,
+                            }}
+                        >
+                            Systems track skips repo upload and focuses on real-world engineering topics like queues, recommendations, caching, fanout, search, and consistency.
+                            <div style={{ marginTop: 14 }}>
+                                <button className="btn-primary" onClick={continueFromStepOne}>
+                                    Continue to Topics <ChevronRight size={18} />
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
-            {step === 2 && (
+            {step === 2 && track === 'repo-viva' && (
                 <div className="animate-fade-in">
-                    <div
-                        style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'flex-start',
-                            marginBottom: 20,
-                            gap: 16,
-                            flexWrap: 'wrap',
-                        }}
-                    >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20, gap: 16, flexWrap: 'wrap' }}>
                         <div>
-                            <h2
-                                style={{
-                                    color: '#e2e8f0',
-                                    fontWeight: 700,
-                                    fontSize: 'clamp(1.1rem,3vw,1.4rem)',
-                                    marginBottom: 4,
-                                }}
-                            >
+                            <h2 style={{ color: '#e2e8f0', fontWeight: 700, fontSize: 'clamp(1.1rem,3vw,1.4rem)', marginBottom: 4 }}>
                                 Tag your files
                             </h2>
                             <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
                                 <strong style={{ color: '#e2e8f0' }}>{files.length}</strong> files in{' '}
-                                <strong style={{ color: '#38bdf8' }}>
-                                    {repoOwner}/{repoName}
-                                </strong>
-                                . Tag the parts you want the interview to focus on.
+                                <strong style={{ color: '#38bdf8' }}>{repoOwner}/{repoName}</strong>. Tag the parts you want the interview to focus on.
                             </p>
                         </div>
                         <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                            <div style={{ color: '#38bdf8', fontWeight: 800, fontSize: '1.6rem', lineHeight: 1 }}>
-                                {taggedCount}
-                            </div>
+                            <div style={{ color: '#38bdf8', fontWeight: 800, fontSize: '1.6rem', lineHeight: 1 }}>{taggedCount}</div>
                             <div style={{ color: '#64748b', fontSize: '0.72rem', marginTop: 2 }}>tagged</div>
                         </div>
                     </div>
@@ -416,8 +530,7 @@ export default function NewInterviewPage() {
                                     justifyContent: 'space-between',
                                     gap: 12,
                                     padding: '10px 16px',
-                                    borderBottom:
-                                        index < files.length - 1 ? '1px solid rgba(99,179,237,0.07)' : 'none',
+                                    borderBottom: index < files.length - 1 ? '1px solid rgba(99,179,237,0.07)' : 'none',
                                 }}
                             >
                                 <span
@@ -467,32 +580,75 @@ export default function NewInterviewPage() {
                 </div>
             )}
 
-            {step === 3 && (
+            {step === 2 && track === 'systems' && (
                 <div className="glass-card animate-fade-in" style={{ padding: 'clamp(20px,5vw,32px)' }}>
-                    <h2
+                    <h2 style={{ color: '#e2e8f0', fontWeight: 700, fontSize: 'clamp(1.1rem,3vw,1.4rem)', marginBottom: 8 }}>
+                        Choose systems topics
+                    </h2>
+                    <p style={{ color: '#94a3b8', fontSize: '0.875rem', marginBottom: 24 }}>
+                        Pick the topics you want to be interviewed on. The systems track uses richer answer options and a mix of MCQs, short-answer prompts, and deeper descriptive questions.
+                    </p>
+
+                    <div
                         style={{
-                            color: '#e2e8f0',
-                            fontWeight: 700,
-                            fontSize: 'clamp(1.1rem,3vw,1.4rem)',
-                            marginBottom: 8,
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%,240px), 1fr))',
+                            gap: 12,
+                            marginBottom: 24,
                         }}
                     >
+                        {SYSTEM_TOPIC_OPTIONS.map((topic) => {
+                            const active = systemTopics.includes(topic);
+                            return (
+                                <button
+                                    key={topic}
+                                    onClick={() =>
+                                        setSystemTopics(
+                                            active
+                                                ? systemTopics.filter((currentTopic) => currentTopic !== topic)
+                                                : [...systemTopics, topic]
+                                        )
+                                    }
+                                    style={{
+                                        padding: '16px',
+                                        borderRadius: 12,
+                                        border: active ? '1px solid rgba(56,189,248,0.6)' : '1px solid var(--border)',
+                                        background: active ? 'rgba(56,189,248,0.08)' : 'rgba(19,29,53,0.4)',
+                                        color: active ? '#e2e8f0' : '#94a3b8',
+                                        cursor: 'pointer',
+                                        textAlign: 'left',
+                                        fontSize: '0.9rem',
+                                        lineHeight: 1.55,
+                                    }}
+                                >
+                                    {topic}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <button className="btn-primary" disabled={systemTopics.length === 0} onClick={() => setStep(3)}>
+                            Continue <ChevronRight size={18} />
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {step === 3 && (
+                <div className="glass-card animate-fade-in" style={{ padding: 'clamp(20px,5vw,32px)' }}>
+                    <h2 style={{ color: '#e2e8f0', fontWeight: 700, fontSize: 'clamp(1.1rem,3vw,1.4rem)', marginBottom: 8 }}>
                         Tune the interview
                     </h2>
                     <p style={{ color: '#94a3b8', fontSize: '0.875rem', marginBottom: 24 }}>
-                        Pick the focus areas, the interview style, and the difficulty preset. You will still get 10
-                        MCQ-based questions with explanations built for viva prep.
+                        {track === 'repo-viva'
+                            ? 'This track gives you 10 MCQs and 2 descriptive repo-based questions.'
+                            : 'This track gives you a more answer-heavy systems mix with MCQs, short-answer prompts, and descriptive design questions.'}
                     </p>
 
                     <div style={{ marginBottom: 24 }}>
                         <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 10 }}>Interview style</div>
-                        <div
-                            style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%,220px), 1fr))',
-                                gap: 12,
-                            }}
-                        >
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%,220px), 1fr))', gap: 12 }}>
                             {INTERVIEW_STYLE_OPTIONS.map((option) => {
                                 const active = interviewStyle === option.value;
                                 return (
@@ -502,9 +658,7 @@ export default function NewInterviewPage() {
                                         style={{
                                             padding: '16px',
                                             borderRadius: 12,
-                                            border: active
-                                                ? '1px solid rgba(56,189,248,0.6)'
-                                                : '1px solid var(--border)',
+                                            border: active ? '1px solid rgba(56,189,248,0.6)' : '1px solid var(--border)',
                                             background: active ? 'rgba(56,189,248,0.08)' : 'rgba(19,29,53,0.4)',
                                             color: '#e2e8f0',
                                             cursor: 'pointer',
@@ -523,13 +677,7 @@ export default function NewInterviewPage() {
 
                     <div style={{ marginBottom: 24 }}>
                         <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 10 }}>Difficulty preset</div>
-                        <div
-                            style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%,220px), 1fr))',
-                                gap: 12,
-                            }}
-                        >
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%,220px), 1fr))', gap: 12 }}>
                             {DIFFICULTY_PRESET_OPTIONS.map((option) => {
                                 const active = difficultyPreset === option.value;
                                 return (
@@ -539,9 +687,7 @@ export default function NewInterviewPage() {
                                         style={{
                                             padding: '16px',
                                             borderRadius: 12,
-                                            border: active
-                                                ? '1px solid rgba(56,189,248,0.6)'
-                                                : '1px solid var(--border)',
+                                            border: active ? '1px solid rgba(56,189,248,0.6)' : '1px solid var(--border)',
                                             background: active ? 'rgba(56,189,248,0.08)' : 'rgba(19,29,53,0.4)',
                                             color: '#e2e8f0',
                                             cursor: 'pointer',
@@ -558,8 +704,9 @@ export default function NewInterviewPage() {
                         </div>
                     </div>
 
-                    <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 10 }}>Focus areas</div>
-
+                    <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 10 }}>
+                        {track === 'repo-viva' ? 'Focus areas' : 'Cross-cutting focus areas'}
+                    </div>
                     <div
                         style={{
                             display: 'grid',
@@ -583,9 +730,7 @@ export default function NewInterviewPage() {
                                     style={{
                                         padding: '16px',
                                         borderRadius: 12,
-                                        border: active
-                                            ? '1px solid rgba(56,189,248,0.6)'
-                                            : '1px solid var(--border)',
+                                        border: active ? '1px solid rgba(56,189,248,0.6)' : '1px solid var(--border)',
                                         background: active ? 'rgba(56,189,248,0.08)' : 'rgba(19,29,53,0.4)',
                                         color: active ? '#38bdf8' : '#94a3b8',
                                         fontWeight: active ? 600 : 400,
@@ -632,21 +777,16 @@ export default function NewInterviewPage() {
                     >
                         {session
                             ? 'Signed in: your interview will be saved to the dashboard so you can review it later.'
-                            : 'Guest mode: your interview will run normally, but the question review card is temporary and will be cleared after 15 minutes of inactivity.'}
+                            : 'Guest mode: your interview will run normally, but the review card is temporary and will be cleared after 15 minutes of inactivity.'}
                     </div>
 
-                    <div
-                        style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            flexWrap: 'wrap',
-                            gap: 12,
-                        }}
-                    >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
                         <p style={{ color: '#64748b', fontSize: '0.82rem' }}>
-                            {taggedCount} file{taggedCount !== 1 ? 's' : ''} tagged · {focusAreas.length} area
-                            {focusAreas.length !== 1 ? 's' : ''} selected · {interviewStyle === 'practice' ? 'practice mode' : 'interview mode'} · {difficultyPreset}
+                            {track === 'repo-viva'
+                                ? `${taggedCount} file${taggedCount !== 1 ? 's' : ''} tagged`
+                                : `${systemTopics.length} systems topic${systemTopics.length !== 1 ? 's' : ''} selected`}{' '}
+                            · {focusAreas.length} area{focusAreas.length !== 1 ? 's' : ''} selected ·{' '}
+                            {interviewStyle === 'practice' ? 'practice mode' : 'interview mode'} · {difficultyPreset}
                         </p>
                         <button
                             className="btn-primary"
@@ -660,7 +800,7 @@ export default function NewInterviewPage() {
                                 </>
                             ) : (
                                 <>
-                                    Generate 10 Questions <ChevronRight size={18} />
+                                    Generate Interview <ChevronRight size={18} />
                                 </>
                             )}
                         </button>
