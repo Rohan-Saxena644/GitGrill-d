@@ -120,7 +120,7 @@ export default function InterviewWorkspace({
 
     async function submitAnswer() {
         if (currentQuestion.type === 'mcq' && selectedOptionIndex === null) return;
-        if (currentQuestion.type === 'descriptive' && !answerText.trim()) return;
+        if (currentQuestion.type !== 'mcq' && !answerText.trim()) return;
 
         setError('');
         setLoading(true);
@@ -152,13 +152,13 @@ export default function InterviewWorkspace({
     async function saveAndNext() {
         if (!session || !evaluation) return;
         if (currentQuestion.type === 'mcq' && selectedOptionIndex === null) return;
-        if (currentQuestion.type === 'descriptive' && !answerText.trim()) return;
+        if (currentQuestion.type !== 'mcq' && !answerText.trim()) return;
 
         setSaving(true);
 
         const newAnswer: Answer = {
             questionIndex: currentQ,
-            text: currentQuestion.type === 'descriptive' ? answerText : undefined,
+            text: currentQuestion.type !== 'mcq' ? answerText : undefined,
             selectedOptionIndex: currentQuestion.type === 'mcq' ? selectedOptionIndex ?? undefined : undefined,
             isCorrect: evaluation.isCorrect,
             score: evaluation.score,
@@ -242,7 +242,9 @@ export default function InterviewWorkspace({
                     <ArrowLeft size={15} /> {mode === 'saved' ? 'Dashboard' : 'Back'}
                 </Link>
                 <span style={{ color: '#94a3b8', fontSize: '0.875rem' }}>
-                    {session.repoOwner}/{session.repoName}
+                    {session.interviewTrack === 'systems'
+                        ? `Systems Track · ${session.systemTopics?.length ?? 0} topics`
+                        : `${session.repoOwner}/${session.repoName}`}
                 </span>
             </div>
 

@@ -88,7 +88,7 @@ export default function InterviewReview({
         : 0;
 
     const mcqQuestions = session.questions.filter((question) => question.type === 'mcq');
-    const descriptiveQuestions = session.questions.filter((question) => question.type === 'descriptive');
+    const openEndedQuestions = session.questions.filter((question) => question.type !== 'mcq');
     const correctCount = session.answers.filter((answer) => answer.isCorrect).length;
     const accuracy = mcqQuestions.length ? Math.round((correctCount / mcqQuestions.length) * 100) : 0;
 
@@ -150,7 +150,9 @@ export default function InterviewReview({
                         {mode === 'guest' ? 'Guest Review' : 'Interview Complete'}
                     </h1>
                     <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
-                        {session.repoOwner}/{session.repoName} · {correctCount} correct out of {mcqQuestions.length} MCQs, plus {descriptiveQuestions.length} descriptive questions
+                        {session.interviewTrack === 'systems'
+                            ? `Systems Track · ${session.systemTopics?.length ?? 0} topics selected · ${correctCount} correct out of ${mcqQuestions.length} MCQs, plus ${openEndedQuestions.length} open-ended questions`
+                            : `${session.repoOwner}/${session.repoName} · ${correctCount} correct out of ${mcqQuestions.length} MCQs, plus ${openEndedQuestions.length} open-ended questions`}
                     </p>
                 </div>
                 <div style={{ textAlign: 'center' }}>

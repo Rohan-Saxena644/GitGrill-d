@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { PlusCircle, GitBranch, Clock, CheckCircle2, Loader2, Trash2, BarChart2 } from 'lucide-react';
+import { PlusCircle, GitBranch, Clock, CheckCircle2, Layers3, Loader2, Trash2 } from 'lucide-react';
 import { ISession } from '@/types';
 
 function ScoreBadge({ avg }: { avg: number }) {
@@ -30,6 +30,23 @@ function StatusPill({ status }: { status: string }) {
       padding: '3px 10px', borderRadius: 20,
     }}>
       {label}
+    </span>
+  );
+}
+
+function TrackPill({ track }: { track?: string }) {
+  const isSystems = track === 'systems';
+  return (
+    <span style={{
+      fontSize: '0.72rem', fontWeight: 600,
+      color: isSystems ? '#2dd4bf' : '#38bdf8',
+      background: isSystems ? 'rgba(45,212,191,0.12)' : 'rgba(56,189,248,0.12)',
+      border: `1px solid ${isSystems ? 'rgba(45,212,191,0.28)' : 'rgba(56,189,248,0.28)'}`,
+      padding: '3px 10px', borderRadius: 20,
+      display: 'inline-flex', alignItems: 'center', gap: 5,
+    }}>
+      {isSystems ? <Layers3 size={11} /> : <GitBranch size={11} />}
+      {isSystems ? 'Systems Track' : 'Repo Viva'}
     </span>
   );
 }
@@ -139,7 +156,7 @@ export default function DashboardPage() {
             </div>
             <h2 style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 8 }}>No interviews yet</h2>
             <p style={{ color: '#94a3b8', marginBottom: 28, fontSize: '0.9rem', maxWidth: 360, margin: '0 auto 28px' }}>
-              Paste a GitHub repo URL to get your first AI-generated interview questions.
+              Start with a repo viva or jump straight into the systems track for real-world engineering practice.
             </p>
             <Link href="/interview/new" className="btn-primary" style={{ textDecoration: 'none' }}>
               Start First Interview
@@ -156,6 +173,11 @@ export default function DashboardPage() {
               const date  = new Date(s.createdAt!).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
               const href  = s.status === 'completed' ? `/interview/${s._id}/review` : `/interview/${s._id}`;
               const answeredPct = s.questions.length > 0 ? Math.round((s.answers.length / s.questions.length) * 100) : 0;
+              const isSystems = s.interviewTrack === 'systems';
+              const title = isSystems ? 'Real-World Engineering' : s.repoName;
+              const subtitle = isSystems
+                ? `${s.systemTopics?.length ?? 0} systems topic${(s.systemTopics?.length ?? 0) !== 1 ? 's' : ''}`
+                : s.repoOwner;
 
               return (
                 <div key={s._id} style={{ position: 'relative' }}>
@@ -181,19 +203,27 @@ export default function DashboardPage() {
                       {/* Repo name */}
                       <div style={{ paddingRight: 36, marginBottom: 14 }}>
                         <div style={{ fontWeight: 700, color: '#e2e8f0', fontSize: '1rem', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {s.repoName}
+                          {title}
                         </div>
-                        <div style={{ color: '#64748b', fontSize: '0.78rem' }}>{s.repoOwner}</div>
+                        <div style={{ color: '#64748b', fontSize: '0.78rem' }}>{subtitle}</div>
                       </div>
 
                       {/* Status + answered */}
                       <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
+                        <TrackPill track={s.interviewTrack} />
                         <StatusPill status={s.status} />
                         <span style={{ color: '#64748b', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4 }}>
                           <CheckCircle2 size={12} />
                           {s.answers.length}/{s.questions.length} answered
                         </span>
                       </div>
+
+                      {isSystems && (s.systemTopics?.length ?? 0) > 0 && (
+                        <div style={{ marginBottom: 14, color: '#94a3b8', fontSize: '0.78rem', lineHeight: 1.5 }}>
+                          {(s.systemTopics ?? []).slice(0, 2).join(' · ')}
+                          {(s.systemTopics?.length ?? 0) > 2 ? ` +${(s.systemTopics?.length ?? 0) - 2} more` : ''}
+                        </div>
+                      )}
 
                       {/* Progress bar */}
                       {s.questions.length > 0 && (
