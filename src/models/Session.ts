@@ -17,6 +17,7 @@ export interface ISessionDoc extends Document {
     repoUrl: string;
     repoOwner: string;
     repoName: string;
+    resumeContext?: string;
     taggedFiles: TaggedFile[];
     focusAreas: FocusArea[];
     interviewTrack?: InterviewTrack;
@@ -36,6 +37,7 @@ const SessionSchema = new Schema<ISessionDoc>(
         repoUrl: { type: String, required: true },
         repoOwner: { type: String, required: true },
         repoName: { type: String, required: true },
+        resumeContext: { type: String },
 
         taggedFiles: [
             {

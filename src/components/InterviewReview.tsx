@@ -4,8 +4,10 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { ArrowLeft, BookOpen, PlusCircle, Trophy } from 'lucide-react';
+import { ArrowLeft, BookOpen, Download, PlusCircle, Trophy } from 'lucide-react';
 import { clearGuestSession, readGuestSession, touchGuestSession } from '@/lib/guest-session';
+import { buildInterviewMarkdown } from '@/lib/interview-export';
+import { buildInterviewInsights } from '@/lib/interview-insights';
 import { Answer, GuestSessionState, ISession, Question } from '@/types';
 
 function ScoreBar({ score }: { score?: number }) {
@@ -72,6 +74,7 @@ export default function InterviewReview({
         () => session?.answers.filter((answer) => answer.score !== undefined).map((answer) => answer.score as number) ?? [],
         [session]
     );
+    const insights = useMemo(() => (session ? buildInterviewInsights(session) : null), [session]);
 
     if (loading || (mode === 'saved' && status === 'loading')) {
         return (
@@ -92,6 +95,26 @@ export default function InterviewReview({
     const correctCount = session.answers.filter((answer) => answer.isCorrect).length;
     const accuracy = mcqQuestions.length ? Math.round((correctCount / mcqQuestions.length) * 100) : 0;
 
+    function exportReview() {
+        if (!session) return;
+
+        const markdown = buildInterviewMarkdown(session);
+        const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        const sessionLabel =
+            session.interviewTrack === 'systems'
+                ? 'systems-track'
+                : `${session.repoOwner}-${session.repoName}`.replace(/[^a-z0-9-_]+/gi, '-').toLowerCase();
+
+        link.href = url;
+        link.download = `codeviva-${sessionLabel}-review.md`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+    }
+
     return (
         <div className="page-container" style={{ padding: '32px 24px', maxWidth: 860 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
@@ -108,16 +131,21 @@ export default function InterviewReview({
                 >
                     <ArrowLeft size={15} /> {mode === 'saved' ? 'Dashboard' : 'Back'}
                 </Link>
-                <Link
-                    href="/interview/new"
-                    className="btn-secondary"
-                    style={{ textDecoration: 'none', fontSize: '0.85rem', padding: '8px 16px' }}
-                    onClick={() => {
-                        if (mode === 'guest') clearGuestSession();
-                    }}
-                >
-                    <PlusCircle size={15} /> New Interview
-                </Link>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    <button className="btn-secondary" onClick={exportReview} style={{ fontSize: '0.85rem', padding: '8px 16px' }}>
+                        <Download size={15} /> Export Markdown
+                    </button>
+                    <Link
+                        href="/interview/new"
+                        className="btn-secondary"
+                        style={{ textDecoration: 'none', fontSize: '0.85rem', padding: '8px 16px' }}
+                        onClick={() => {
+                            if (mode === 'guest') clearGuestSession();
+                        }}
+                    >
+                        <PlusCircle size={15} /> New Interview
+                    </Link>
+                </div>
             </div>
 
             <div
@@ -180,6 +208,86 @@ export default function InterviewReview({
                     <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>avg score</div>
                 </div>
             </div>
+
+            {insights && (
+                <div
+                    style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
+                        gap: 14,
+                        marginBottom: 28,
+                    }}
+                >
+                    <div className="glass-card" style={{ padding: 20 }}>
+                        <div style={{ color: '#64748b', fontSize: '0.78rem', marginBottom: 8 }}>Strongest area</div>
+                        <div style={{ color: '#34d399', fontWeight: 700, fontSize: '1.05rem', marginBottom: 4 }}>
+                            {insights.strongestCategory?.label ?? 'Not enough answers yet'}
+                        </div>
+                        <div style={{ color: '#94a3b8', fontSize: '0.84rem', lineHeight: 1.6 }}>
+                            {insights.strongestCategory
+                                ? `${insights.strongestCategory.avgScore}/10 average across ${insights.strongestCategory.answered} answer${insights.strongestCategory.answered === 1 ? '' : 's'}.`
+                                : 'Finish more questions to see a reliable strength signal.'}
+                        </div>
+                    </div>
+
+                    <div className="glass-card" style={{ padding: 20 }}>
+                        <div style={{ color: '#64748b', fontSize: '0.78rem', marginBottom: 8 }}>Needs more revision</div>
+                        <div style={{ color: '#fbbf24', fontWeight: 700, fontSize: '1.05rem', marginBottom: 4 }}>
+                            {insights.weakestCategory?.label ?? 'Not enough answers yet'}
+                        </div>
+                        <div style={{ color: '#94a3b8', fontSize: '0.84rem', lineHeight: 1.6 }}>
+                            {insights.weakestCategory
+                                ? `${insights.weakestCategory.avgScore}/10 average. This is the cleanest place to revise first.`
+                                : 'No weak-area signal yet because there are not enough scored answers.'}
+                        </div>
+                    </div>
+
+                    <div className="glass-card" style={{ padding: 20 }}>
+                        <div style={{ color: '#64748b', fontSize: '0.78rem', marginBottom: 8 }}>Felt hardest most often</div>
+                        <div style={{ color: '#f87171', fontWeight: 700, fontSize: '1.05rem', marginBottom: 4 }}>
+                            {insights.hardestCategory?.label ?? 'Nothing marked Hard yet'}
+                        </div>
+                        <div style={{ color: '#94a3b8', fontSize: '0.84rem', lineHeight: 1.6 }}>
+                            {insights.hardestCategory
+                                ? `You marked ${insights.hardestCategory.hardCount} question${insights.hardestCategory.hardCount === 1 ? '' : 's'} from this area as hard.`
+                                : 'Use the felt difficulty buttons during interviews to make this insight sharper.'}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {insights && insights.typeBreakdown.length > 0 && (
+                <div className="glass-card" style={{ padding: 22, marginBottom: 28 }}>
+                    <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 12 }}>Score breakdown</div>
+                    <div
+                        style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
+                            gap: 12,
+                        }}
+                    >
+                        {insights.typeBreakdown.map((entry) => (
+                            <div
+                                key={entry.label}
+                                style={{
+                                    padding: '14px 16px',
+                                    borderRadius: 12,
+                                    background: 'rgba(15,22,41,0.6)',
+                                    border: '1px solid rgba(99,179,237,0.1)',
+                                }}
+                            >
+                                <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 4 }}>{entry.label}</div>
+                                <div style={{ color: '#38bdf8', fontSize: '1.15rem', fontWeight: 700, marginBottom: 4 }}>
+                                    {entry.avgScore}/10
+                                </div>
+                                <div style={{ color: '#94a3b8', fontSize: '0.82rem' }}>
+                                    {entry.answered} answered question{entry.answered === 1 ? '' : 's'}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                 {session.questions.map((question: Question, index: number) => {

@@ -59,6 +59,7 @@ export interface ISession {
     repoUrl: string;
     repoOwner: string;
     repoName: string;
+    resumeContext?: string;
     taggedFiles: TaggedFile[];
     focusAreas: FocusArea[];
     interviewTrack?: InterviewTrack;

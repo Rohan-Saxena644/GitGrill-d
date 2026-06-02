@@ -48,6 +48,10 @@ export async function PATCH(
     if (body.status !== undefined) allowedUpdates.status = body.status;
     if (body.taggedFiles !== undefined) allowedUpdates.taggedFiles = body.taggedFiles;
     if (body.focusAreas !== undefined) allowedUpdates.focusAreas = body.focusAreas;
+    if (body.resumeContext !== undefined) {
+        allowedUpdates.resumeContext =
+            typeof body.resumeContext === 'string' ? body.resumeContext.trim().slice(0, 4000) : '';
+    }
 
     const updated = await Session.findOneAndUpdate(
         { _id: params.id, userId },

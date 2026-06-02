@@ -65,6 +65,7 @@ type GenerateOptions = {
     difficultyPreset?: DifficultyPreset;
     interviewTrack?: InterviewTrack;
     systemTopics?: SystemTopic[];
+    resumeContext?: string;
 };
 
 function buildSharedPromptBits(options: GenerateOptions) {
@@ -99,9 +100,15 @@ export async function generateQuestions(
     const client = getClient();
     const interviewTrack = options?.interviewTrack ?? 'repo-viva';
     const systemTopics = options?.systemTopics ?? [];
+    const resumeContext = options?.resumeContext?.trim();
     const { interviewStyle, difficultyPreset, styleInstructions, difficultyInstructions } = buildSharedPromptBits(
         options ?? {}
     );
+    const candidateContextBlock = resumeContext
+        ? `Candidate background shared by the user:
+${resumeContext}
+`
+        : '';
 
     const fileContext = taggedFiles
         .filter((file) => file.content)
@@ -120,6 +127,8 @@ Difficulty preset: ${difficultyPreset}
 
 Code files:
 ${fileContext}
+
+${candidateContextBlock}
 
 Rules:
 - Make the questions feel like real technical interviews, not trivia quizzes.
@@ -177,6 +186,8 @@ ${focusAreas.join(', ')}
 
 Interview style: ${interviewStyle}
 Difficulty preset: ${difficultyPreset}
+
+${candidateContextBlock}
 
 Rules:
 - Make the questions feel like real interviews for engineers who build products, platforms, or backend systems.

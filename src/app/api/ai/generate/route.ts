@@ -31,6 +31,10 @@ async function buildFilesWithContent(
     );
 }
 
+function sanitizeResumeContext(resumeContext: unknown) {
+    return typeof resumeContext === 'string' ? resumeContext.trim().slice(0, 4000) : '';
+}
+
 // POST /api/ai/generate
 // Authenticated: { sessionId }
 // Guest: { repoOwner, repoName, taggedFiles, focusAreas }
@@ -65,6 +69,7 @@ export async function POST(req: NextRequest) {
                     systemTopics: doc.systemTopics as SystemTopic[] | undefined,
                     interviewStyle: doc.interviewStyle as InterviewStyle | undefined,
                     difficultyPreset: doc.difficultyPreset as DifficultyPreset | undefined,
+                    resumeContext: sanitizeResumeContext(doc.resumeContext),
                 }
             );
 
@@ -84,6 +89,7 @@ export async function POST(req: NextRequest) {
             systemTopics,
             interviewStyle,
             difficultyPreset,
+            resumeContext,
         } = body;
 
         if (!repoOwner || !repoName || !Array.isArray(focusAreas)) {
@@ -99,6 +105,7 @@ export async function POST(req: NextRequest) {
             systemTopics: systemTopics as SystemTopic[] | undefined,
             interviewStyle: interviewStyle as InterviewStyle | undefined,
             difficultyPreset: difficultyPreset as DifficultyPreset | undefined,
+            resumeContext: sanitizeResumeContext(resumeContext),
         });
 
         return NextResponse.json({

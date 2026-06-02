@@ -26,6 +26,7 @@ import {
     InterviewTrack,
     SystemTopic,
 } from '@/types';
+import { buildSuggestedTags } from '@/lib/file-tagging';
 
 const FOCUS_AREAS: FocusArea[] = ['Architecture', 'Error Handling', 'Performance', 'Security'];
 
@@ -123,6 +124,7 @@ export default function NewInterviewPage() {
     ]);
     const [interviewStyle, setInterviewStyle] = useState<InterviewStyle>('practice');
     const [difficultyPreset, setDifficultyPreset] = useState<DifficultyPreset>('balanced');
+    const [resumeContext, setResumeContext] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const stepConfig = useMemo(
@@ -160,11 +162,7 @@ export default function NewInterviewPage() {
             setRepoOwner(data.owner);
             setRepoName(data.repo);
 
-            const defaultTags: Record<string, FileTag> = {};
-            data.files.forEach((file: GitHubFile) => {
-                defaultTags[file.path] = 'untagged';
-            });
-            setTags(defaultTags);
+            setTags(buildSuggestedTags(data.files));
             setStep(2);
         } catch (e: unknown) {
             setError(e instanceof Error ? e.message : 'Something went wrong');
@@ -210,6 +208,7 @@ export default function NewInterviewPage() {
                           repoUrl,
                           repoOwner,
                           repoName,
+                          resumeContext: resumeContext.trim(),
                           taggedFiles,
                           focusAreas,
                           interviewTrack: track,
@@ -221,6 +220,7 @@ export default function NewInterviewPage() {
                           repoUrl: 'systems://track',
                           repoOwner: 'Systems',
                           repoName: 'Real-World Engineering',
+                          resumeContext: resumeContext.trim(),
                           taggedFiles: [],
                           focusAreas,
                           interviewTrack: track,
@@ -258,6 +258,7 @@ export default function NewInterviewPage() {
                     repoName: track === 'repo-viva' ? repoName : 'Real-World Engineering',
                     taggedFiles,
                     focusAreas,
+                    resumeContext: resumeContext.trim(),
                     interviewTrack: track,
                     systemTopics,
                     interviewStyle,
@@ -272,6 +273,7 @@ export default function NewInterviewPage() {
                 repoUrl: track === 'repo-viva' ? repoUrl : 'systems://track',
                 repoOwner: track === 'repo-viva' ? repoOwner : 'Systems',
                 repoName: track === 'repo-viva' ? repoName : 'Real-World Engineering',
+                resumeContext: resumeContext.trim(),
                 taggedFiles: generated.taggedFiles ?? taggedFiles,
                 focusAreas,
                 interviewTrack: track,
@@ -493,7 +495,7 @@ export default function NewInterviewPage() {
                             </h2>
                             <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
                                 <strong style={{ color: '#e2e8f0' }}>{files.length}</strong> files in{' '}
-                                <strong style={{ color: '#38bdf8' }}>{repoOwner}/{repoName}</strong>. Tag the parts you want the interview to focus on.
+                                <strong style={{ color: '#38bdf8' }}>{repoOwner}/{repoName}</strong>. Start from the suggested tags, then adjust the parts you want the interview to focus on.
                             </p>
                         </div>
                         <div style={{ textAlign: 'right', flexShrink: 0 }}>
@@ -518,6 +520,25 @@ export default function NewInterviewPage() {
                                 {tagOption.label}
                             </span>
                         ))}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
+                        <button className="btn-secondary" onClick={() => setTags(buildSuggestedTags(files))}>
+                            Auto-tag suggestions
+                        </button>
+                        <button
+                            className="btn-secondary"
+                            onClick={() =>
+                                setTags(
+                                    files.reduce<Record<string, FileTag>>((acc, file) => {
+                                        acc[file.path] = 'untagged';
+                                        return acc;
+                                    }, {})
+                                )
+                            }
+                        >
+                            Clear tags
+                        </button>
                     </div>
 
                     <div className="glass-card" style={{ padding: 0, maxHeight: '52vh', overflowY: 'auto' }}>
@@ -761,6 +782,26 @@ export default function NewInterviewPage() {
                                 </button>
                             );
                         })}
+                    </div>
+
+                    <div style={{ marginBottom: 24 }}>
+                        <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 8 }}>
+                            Resume or experience context (optional)
+                        </div>
+                        <p style={{ color: '#94a3b8', fontSize: '0.84rem', lineHeight: 1.65, marginBottom: 10 }}>
+                            Paste a short resume summary, internship experience, project stack, or the kind of roles
+                            you are targeting. Leave it empty if you want a generic interview.
+                        </p>
+                        <textarea
+                            className="input"
+                            value={resumeContext}
+                            onChange={(e) => setResumeContext(e.target.value.slice(0, 4000))}
+                            placeholder="Example: Built MERN and Next.js projects, used MongoDB, REST APIs, JWT auth, and basic deployment. Interested in backend and full-stack roles."
+                            style={{ minHeight: 130 }}
+                        />
+                        <div style={{ color: '#64748b', fontSize: '0.76rem', marginTop: 6 }}>
+                            {resumeContext.length}/4000 characters
+                        </div>
                     </div>
 
                     <div
