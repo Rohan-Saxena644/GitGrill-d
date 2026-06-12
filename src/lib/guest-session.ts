@@ -27,7 +27,7 @@ export function readGuestSession(): GuestSessionState | null {
 
     try {
         const parsed = JSON.parse(raw) as GuestSessionState;
-        if (!parsed?.questions || !Array.isArray(parsed.questions)) {
+        if (!parsed?.questions || !Array.isArray(parsed.questions) || parsed.questions.length === 0) {
             clearGuestSession();
             return null;
         }

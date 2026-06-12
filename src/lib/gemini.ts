@@ -9,7 +9,7 @@ import {
     TaggedFile,
 } from '@/types';
 
-const MODEL = 'openrouter/auto';
+const MODEL = 'google/gemini-2.0-flash-001';
 
 function getClient() {
     return new OpenAI({
@@ -246,37 +246,68 @@ Respond ONLY with valid JSON in this exact format:
 
     const prompt = interviewTrack === 'systems' ? systemsPrompt : repoPrompt;
 
-    const response = await client.chat.completions.create({
-        model: MODEL,
-        messages: [{ role: 'user', content: prompt }],
-    });
+    // Retry once on parse/validation failure — models occasionally produce slightly
+    // malformed output on the first attempt.
+    let lastError: Error = new Error('Unknown generation error');
 
-    const text = response.choices[0]?.message?.content ?? '';
-    const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    for (let attempt = 1; attempt <= 2; attempt++) {
+        let rawText = '';
+        try {
+            const response = await client.chat.completions.create({
+                model: MODEL,
+                messages: [{ role: 'user', content: prompt }],
+            });
 
-    try {
-        const parsed = JSON.parse(cleaned) as Question[];
-        if (!Array.isArray(parsed) || parsed.length !== 12) {
-            throw new Error('Model returned an invalid question set size');
-        }
+            rawText = response.choices[0]?.message?.content ?? '';
 
-        const mcqCount = parsed.filter((question) => question.type === 'mcq').length;
-        const shortCount = parsed.filter((question) => question.type === 'short-answer').length;
-        const descriptiveCount = parsed.filter((question) => question.type === 'descriptive').length;
-
-        if (interviewTrack === 'systems') {
-            if (mcqCount !== 8 || shortCount !== 2 || descriptiveCount !== 2) {
-                throw new Error('Model returned the wrong systems question type mix');
+            // Robustly extract the JSON array regardless of markdown fences or
+            // any preamble/postamble the model adds.
+            const jsonMatch = rawText.match(/\[[\s\S]*\]/);
+            if (!jsonMatch) {
+                throw new Error('No JSON array found in model response');
             }
-        } else if (mcqCount !== 10 || descriptiveCount !== 2) {
-            throw new Error('Model returned the wrong repo-viva question type mix');
-        }
+            const cleaned = jsonMatch[0].trim();
 
-        return parsed.map((question, index) => sanitizeQuestion(question, index));
-    } catch {
-        console.error('Failed to parse response as JSON:', cleaned);
-        throw new Error('Model returned malformed JSON. Raw: ' + cleaned.slice(0, 200));
+            const parsed = JSON.parse(cleaned) as Question[];
+
+            if (!Array.isArray(parsed) || parsed.length < 10) {
+                throw new Error(`Model returned too few questions (${parsed.length})`);
+            }
+
+            // If the model returned more than 12, trim to exactly 12.
+            const trimmed = parsed.slice(0, 12);
+
+            const mcqCount = trimmed.filter((q) => q.type === 'mcq').length;
+            const shortCount = trimmed.filter((q) => q.type === 'short-answer').length;
+            const descriptiveCount = trimmed.filter((q) => q.type === 'descriptive').length;
+
+            if (interviewTrack === 'systems') {
+                if (mcqCount < 6 || shortCount < 1 || descriptiveCount < 1) {
+                    throw new Error(
+                        `Systems track got wrong type mix: ${mcqCount} MCQ, ${shortCount} short, ${descriptiveCount} descriptive`
+                    );
+                }
+            } else {
+                if (mcqCount < 8 || descriptiveCount < 1) {
+                    throw new Error(
+                        `Repo-viva track got wrong type mix: ${mcqCount} MCQ, ${descriptiveCount} descriptive`
+                    );
+                }
+            }
+
+            return trimmed.map((question, index) => sanitizeQuestion(question, index));
+        } catch (err: unknown) {
+            lastError = err instanceof Error ? err : new Error(String(err));
+            console.error(`generateQuestions attempt ${attempt} failed:`, lastError.message);
+            if (rawText) {
+                console.error('Raw model output (first 400 chars):', rawText.slice(0, 400));
+            }
+            // Small delay before retry so we don't hammer the API immediately.
+            if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
     }
+
+    throw new Error(`Failed to generate questions after 2 attempts. Last error: ${lastError.message}`);
 }
 
 export function evaluateMcqAnswer(question: Question, selectedOptionIndex: number) {
@@ -333,7 +364,14 @@ Respond ONLY with valid JSON:
     });
 
     const text = response.choices[0]?.message?.content ?? '';
-    const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+
+    // Robustly extract the JSON object regardless of markdown fences or preamble.
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+        console.error('No JSON object found in evaluation response:', text.slice(0, 400));
+        throw new Error('Model returned no parseable JSON. Raw: ' + text.slice(0, 200));
+    }
+    const cleaned = jsonMatch[0].trim();
 
     try {
         const parsed = JSON.parse(cleaned) as {

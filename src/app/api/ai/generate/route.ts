@@ -92,14 +92,14 @@ export async function POST(req: NextRequest) {
             resumeContext,
         } = body;
 
-        if (!repoOwner || !repoName || !Array.isArray(focusAreas)) {
+        if (!repoOwner || !repoName || !Array.isArray(focusAreas) || focusAreas.length === 0) {
             return NextResponse.json({ error: 'Missing guest interview inputs' }, { status: 400 });
         }
 
         const filesWithContent =
             interviewTrack === 'systems'
                 ? []
-                : await buildFilesWithContent(repoOwner, repoName, taggedFiles as TaggedFile[]);
+                : await buildFilesWithContent(repoOwner, repoName, (taggedFiles as TaggedFile[]) ?? []);
         const questions = await generateQuestions(filesWithContent, focusAreas as FocusArea[], repoName, {
             interviewTrack: interviewTrack as InterviewTrack | undefined,
             systemTopics: systemTopics as SystemTopic[] | undefined,
