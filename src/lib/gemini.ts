@@ -12,9 +12,17 @@ import {
 const MODEL = 'google/gemini-2.0-flash-001';
 
 function getClient() {
+    const apiKey = process.env.OPENROUTER_API_KEY;
+
+    if (!apiKey || apiKey.trim() === '' || apiKey === 'undefined') {
+        throw new Error(
+            'OPENROUTER_API_KEY is not set or invalid. Add it to your .env.local or Vercel environment variables.'
+        );
+    }
+
     return new OpenAI({
         baseURL: 'https://openrouter.ai/api/v1',
-        apiKey: process.env.OPENROUTER_API_KEY!,
+        apiKey: apiKey.trim(),
         defaultHeaders: {
             'HTTP-Referer': process.env.NEXTAUTH_URL ?? 'http://localhost:3000',
             'X-Title': 'CodeViva',
