@@ -9,7 +9,10 @@ import {
     TaggedFile,
 } from '@/types';
 
-const MODEL = 'google/gemini-2.0-flash-001';
+// NOTE: 'google/gemini-2.0-flash-001' was retired from OpenRouter on June 1, 2026
+// ("404 No endpoints found"). gemini-2.5-flash is the current active successor
+// with a comparable 1M+ token context window.
+const MODEL = 'google/gemini-2.5-flash';
 
 function getClient() {
     const apiKey = process.env.OPENROUTER_API_KEY;
@@ -338,6 +341,17 @@ Respond ONLY with valid JSON in this exact format:
                         '"sk-or-"); a Google AI Studio / Gemini key will not work here.'
                 );
             }
+
+            // 404 "No endpoints found" means the model id is deprecated/renamed/removed
+            // on OpenRouter — also not transient, retrying with the same id won't help.
+            if (status === 404) {
+                throw new Error(
+                    `OpenRouter has no provider for model "${MODEL}" (HTTP 404: ${lastError.message}). ` +
+                        `This model id has likely been deprecated or renamed. Check https://openrouter.ai/google ` +
+                        `for the current model id and update the MODEL constant in src/lib/gemini.ts.`
+                );
+            }
+
 
             // Small delay before retry so we don't hammer the API immediately.
             if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 1000));
