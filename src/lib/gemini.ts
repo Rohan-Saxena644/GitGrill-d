@@ -9,41 +9,38 @@ import {
     TaggedFile,
 } from '@/types';
 
-// NOTE: 'google/gemini-2.0-flash-001' was retired from OpenRouter on June 1, 2026
-// ("404 No endpoints found"). gemini-2.5-flash is the current active successor
-// with a comparable 1M+ token context window.
-const MODEL = 'google/gemini-2.5-flash';
+// Using Google AI Studio's free tier directly via its OpenAI-compatible endpoint.
+// Free tier (no credit card): no per-request cost, ~10-15 RPM and ~250-1500 RPD
+// depending on model, 1M token context. Flash-Lite has the highest free daily quota;
+// switch to 'gemini-2.5-flash' if you hit JSON-formatting issues and want stronger
+// instruction-following at the cost of a lower daily limit.
+const MODEL = 'gemini-2.5-flash-lite';
 
 function getClient() {
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey || apiKey.trim() === '' || apiKey === 'undefined') {
         throw new Error(
-            'OPENROUTER_API_KEY is not set or invalid. Add it to your .env.local or Vercel environment variables.'
+            'GEMINI_API_KEY is not set or invalid. Get a free key at https://aistudio.google.com/apikey and add it ' +
+                'to your .env.local or Vercel environment variables.'
         );
     }
 
     const trimmedKey = apiKey.trim();
 
-    // OpenRouter keys always start with "sk-or-". The most common misconfiguration
-    // is pasting a Google AI Studio / Gemini key (starts with "AIza...") here, since
-    // the model id contains "gemini". That key is valid for Google's API but is
-    // unknown to OpenRouter, which responds with "401 User not found".
-    if (!trimmedKey.startsWith('sk-or-')) {
+    // Google AI Studio keys start with "AIza". The most common misconfiguration here
+    // would be pasting an OpenRouter key (starts with "sk-or-") instead.
+    if (!trimmedKey.startsWith('AIza')) {
         console.error(
-            `OPENROUTER_API_KEY does not look like an OpenRouter key (expected it to start with "sk-or-"). ` +
+            `GEMINI_API_KEY does not look like a Google AI Studio key (expected it to start with "AIza"). ` +
                 `Got a value starting with "${trimmedKey.slice(0, 6)}...". ` +
-                `Generate a real key at https://openrouter.ai/keys — a Google/Gemini AI Studio key will not work here.`
+                `Generate a real key at https://aistudio.google.com/apikey.`
         );
     }
 
     return new OpenAI({
-        baseURL: 'https://openrouter.ai/api/v1',
-        apiKey: apiKey.trim(),
-        defaultHeaders: {
-            'HTTP-Referer': process.env.NEXTAUTH_URL ?? 'http://localhost:3000',
-            'X-Title': 'CodeViva',
-        },
+        baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+        apiKey: trimmedKey,
     });
 }
 
@@ -280,6 +277,7 @@ Respond ONLY with valid JSON in this exact format:
         try {
             const response = await client.chat.completions.create({
                 model: MODEL,
+                max_tokens: 8000,
                 messages: [{ role: 'user', content: prompt }],
             });
 
@@ -328,27 +326,26 @@ Respond ONLY with valid JSON in this exact format:
                 console.error('Raw model output (first 400 chars):', rawText.slice(0, 400));
             }
 
-            // 401/403 from OpenRouter means the API key itself was rejected — this is
-            // not transient, so retrying won't help and just doubles the wait before
-            // the user sees an error. Surface a clear, actionable message instead of
-            // the misleading "Failed after 2 attempts. Last error: 401 User not found.".
+            // 401/403 means the API key itself was rejected — this is not transient,
+            // so retrying won't help and just doubles the wait before the user sees
+            // an error. Surface a clear, actionable message instead of the misleading
+            // "Failed after 2 attempts. Last error: ...".
             const status = (err as { status?: number } | undefined)?.status;
             if (status === 401 || status === 403) {
                 throw new Error(
-                    `OpenRouter rejected the request (HTTP ${status}: ${lastError.message}). ` +
-                        'OPENROUTER_API_KEY is missing, invalid, or revoked on OpenRouter\'s side — this is not related to ' +
-                        'app login or guest mode. Get/verify a key at https://openrouter.ai/keys (it should start with ' +
-                        '"sk-or-"); a Google AI Studio / Gemini key will not work here.'
+                    `Google AI rejected the request (HTTP ${status}: ${lastError.message}). ` +
+                        'GEMINI_API_KEY is missing, invalid, or revoked — this is not related to app login or guest ' +
+                        'mode. Get/verify a key at https://aistudio.google.com/apikey (it should start with "AIza").'
                 );
             }
 
-            // 404 "No endpoints found" means the model id is deprecated/renamed/removed
-            // on OpenRouter — also not transient, retrying with the same id won't help.
+            // 404 means the model id is invalid/deprecated/renamed — also not
+            // transient, retrying with the same id won't help.
             if (status === 404) {
                 throw new Error(
-                    `OpenRouter has no provider for model "${MODEL}" (HTTP 404: ${lastError.message}). ` +
-                        `This model id has likely been deprecated or renamed. Check https://openrouter.ai/google ` +
-                        `for the current model id and update the MODEL constant in src/lib/gemini.ts.`
+                    `Google AI has no model "${MODEL}" (HTTP 404: ${lastError.message}). ` +
+                        `Check https://ai.google.dev/gemini-api/docs/models for current model ids ` +
+                        `and update the MODEL constant in src/lib/gemini.ts.`
                 );
             }
 
@@ -411,6 +408,7 @@ Respond ONLY with valid JSON:
 
     const response = await client.chat.completions.create({
         model: MODEL,
+        max_tokens: 1024,
         messages: [{ role: 'user', content: prompt }],
     });
 
