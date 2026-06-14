@@ -16,6 +16,62 @@ import {
 // instruction-following at the cost of a lower daily limit.
 const MODEL = 'gemini-2.5-flash-lite';
 
+// --- Structured output schemas -------------------------------------------------
+//
+// Gemini 2.5 models support JSON-Schema-constrained decoding via the OpenAI-compat
+// `response_format: { type: 'json_schema', json_schema: { schema: ... } }` field.
+// With this set, the model's output is grammar-constrained to match the schema —
+// it cannot emit trailing commas, smart quotes, markdown fences, or missing
+// fields, because those would be invalid under the schema's grammar. This fixes
+// malformed-JSON errors at the source instead of repairing them after the fact.
+//
+// `propertyOrdering` is a Gemini-specific extension that keeps output keys in a
+// stable order, which also tends to make output more consistent.
+
+const QUESTION_ITEM_SCHEMA: Record<string, unknown> = {
+    type: 'object',
+    properties: {
+        type: { type: 'string', enum: ['mcq', 'descriptive', 'short-answer'] },
+        text: { type: 'string' },
+        category: { type: 'string' },
+        difficulty: { type: 'string', enum: ['Easy', 'Medium', 'Hard'] },
+        // For mcq: exactly 4 options. For descriptive/short-answer: empty array.
+        options: {
+            type: 'array',
+            items: { type: 'string' },
+            minItems: 0,
+            maxItems: 4,
+        },
+        // For mcq: index 0-3 of the correct option. For descriptive/short-answer:
+        // not meaningful — the model should send 0, and sanitizeQuestion ignores
+        // this field for those types. Kept required so the schema shape is
+        // uniform across all item types (simpler/more reliable for the model).
+        correctAnswerIndex: { type: 'integer', minimum: 0, maximum: 3 },
+        explanation: { type: 'string' },
+    },
+    required: ['type', 'text', 'category', 'difficulty', 'options', 'correctAnswerIndex', 'explanation'],
+    propertyOrdering: ['type', 'text', 'category', 'difficulty', 'options', 'correctAnswerIndex', 'explanation'],
+};
+
+const QUESTIONS_RESPONSE_SCHEMA: Record<string, unknown> = {
+    type: 'array',
+    items: QUESTION_ITEM_SCHEMA,
+    minItems: 12,
+    maxItems: 12,
+};
+
+const EVALUATION_RESPONSE_SCHEMA: Record<string, unknown> = {
+    type: 'object',
+    properties: {
+        score: { type: 'integer', minimum: 1, maximum: 10 },
+        feedback: { type: 'string' },
+        aiAnswer: { type: 'string' },
+        isCorrect: { type: 'boolean' },
+    },
+    required: ['score', 'feedback', 'aiAnswer', 'isCorrect'],
+    propertyOrdering: ['score', 'feedback', 'aiAnswer', 'isCorrect'],
+};
+
 function getClient() {
     const apiKey = process.env.GEMINI_API_KEY;
 
@@ -223,7 +279,7 @@ Rules:
 - Each MCQ must have exactly 4 answer options and exactly 1 correct answer.
 - MCQ options must be meaningful phrases or full-sentence choices, not lazy one-word answers unless absolutely unavoidable.
 - The best option should still encourage interview-style reasoning, not pure memorization.
-- For the 2 descriptive questions: options must be an empty array and correctAnswerIndex must be omitted.
+- For the 2 descriptive questions: options must be an empty array, and correctAnswerIndex must be set to 0 (it is unused for this question type but the JSON schema requires it to be present).
 - Explanations should teach the candidate how to answer the same idea in a viva. For descriptive questions, explanation should act like a strong model answer.
 - Output strict JSON only: no trailing commas after the last property in an object or the last item in an array, no comments, no markdown code fences.
 
@@ -249,6 +305,7 @@ Respond ONLY with valid JSON in this exact format:
     "category": "Performance",
     "difficulty": "Hard",
     "options": [],
+    "correctAnswerIndex": 0,
     "explanation": "A strong 3-5 sentence model answer that the candidate could adapt in an interview."
   }
 ]`;
@@ -281,7 +338,7 @@ Rules:
 - The 8 MCQs should test understanding quickly, but the candidate should still have to reason. Do not use one-word answer options. Every option should be a meaningful phrase or sentence.
 - The 2 short-answer questions should ask for compact interview responses, like 2-4 sentence answers.
 - The 2 descriptive questions should ask for fuller reasoning, tradeoffs, or mini design discussions.
-- Short-answer and descriptive questions must have options as an empty array and must omit correctAnswerIndex.
+- Short-answer and descriptive questions must have options as an empty array and correctAnswerIndex set to 0 (unused for these types, but required by the JSON schema).
 - Explanations for open-ended questions must be written like strong model answers the candidate can learn from.
 
 Examples of the kind of systems scenarios you may use:
@@ -315,6 +372,7 @@ Respond ONLY with valid JSON in this exact format:
     "category": "Architecture",
     "difficulty": "Medium",
     "options": [],
+    "correctAnswerIndex": 0,
     "explanation": "A concise but strong model answer."
   },
   {
@@ -323,6 +381,7 @@ Respond ONLY with valid JSON in this exact format:
     "category": "Security",
     "difficulty": "Hard",
     "options": [],
+    "correctAnswerIndex": 0,
     "explanation": "A strong model answer with reasoning and tradeoffs."
   }
 ]`;
@@ -345,6 +404,16 @@ Respond ONLY with valid JSON in this exact format:
                 // the JSON array itself (empty content -> "No JSON array found").
                 // 'none' disables thinking for 2.5 models so all tokens go to the answer.
                 reasoning_effort: 'none',
+                // Attempt 1: constrain decoding to QUESTIONS_RESPONSE_SCHEMA — the model
+                // literally cannot produce trailing commas / wrong field types / wrong
+                // array length here, since those would be invalid under the schema's
+                // grammar. Attempt 2 (only reached if attempt 1 failed for some other
+                // reason) falls back to plain JSON mode in case the schema itself was
+                // the problem, relying on the prompt + parseJsonLenient as before.
+                response_format:
+                    attempt === 1
+                        ? { type: 'json_schema', json_schema: { name: 'interview_questions', schema: QUESTIONS_RESPONSE_SCHEMA } }
+                        : { type: 'json_object' },
                 messages: [{ role: 'user', content: prompt }],
             });
 
@@ -480,6 +549,7 @@ Respond ONLY with valid JSON:
         model: MODEL,
         max_tokens: 1024,
         reasoning_effort: 'none',
+        response_format: { type: 'json_schema', json_schema: { name: 'answer_evaluation', schema: EVALUATION_RESPONSE_SCHEMA } },
         messages: [{ role: 'user', content: prompt }],
     });
 
