@@ -11,7 +11,7 @@ import { buildInterviewInsights } from '@/lib/interview-insights';
 import { Answer, GuestSessionState, ISession, Question } from '@/types';
 
 function ScoreBar({ score }: { score?: number }) {
-    if (score === undefined) return <span style={{ color: '#64748b' }}>Not answered</span>;
+    if (score === undefined) return <span style={{ color: '#7d7165' }}>Not answered</span>;
     const cls = score >= 7 ? 'score-high' : score >= 5 ? 'score-medium' : 'score-low';
     return (
         <div className={`score-ring ${cls}`} style={{ width: 48, height: 48, fontSize: '0.95rem' }}>
@@ -124,7 +124,7 @@ export default function InterviewReview({
                         display: 'flex',
                         alignItems: 'center',
                         gap: 6,
-                        color: '#94a3b8',
+                        color: '#ab9d90',
                         textDecoration: 'none',
                         fontSize: '0.875rem',
                     }}
@@ -153,7 +153,7 @@ export default function InterviewReview({
                 style={{
                     padding: '28px 32px',
                     marginBottom: 32,
-                    background: 'linear-gradient(135deg, rgba(14,165,233,0.08), rgba(99,102,241,0.08))',
+                    background: 'linear-gradient(135deg, rgba(232,130,90,0.08), rgba(196,99,61,0.08))',
                     display: 'flex',
                     gap: 24,
                     alignItems: 'center',
@@ -165,7 +165,7 @@ export default function InterviewReview({
                         width: 64,
                         height: 64,
                         borderRadius: 16,
-                        background: 'linear-gradient(135deg,#0ea5e9,#6366f1)',
+                        background: 'linear-gradient(135deg,#e8825a,#c4633d)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -174,10 +174,10 @@ export default function InterviewReview({
                     <Trophy size={28} color="white" />
                 </div>
                 <div style={{ flex: 1 }}>
-                    <h1 style={{ color: '#e2e8f0', fontWeight: 700, fontSize: '1.4rem', marginBottom: 4 }}>
+                    <h1 style={{ color: '#f5ece1', fontWeight: 700, fontSize: '1.4rem', marginBottom: 4 }}>
                         {mode === 'guest' ? 'Guest Review' : 'Interview Complete'}
                     </h1>
-                    <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
+                    <p style={{ color: '#ab9d90', fontSize: '0.9rem' }}>
                         {session.interviewTrack === 'systems'
                             ? `Systems Track · ${session.systemTopics?.length ?? 0} topics selected · ${correctCount} correct out of ${mcqQuestions.length} MCQs, plus ${openEndedQuestions.length} open-ended questions`
                             : `${session.repoOwner}/${session.repoName} · ${correctCount} correct out of ${mcqQuestions.length} MCQs, plus ${openEndedQuestions.length} open-ended questions`}
@@ -186,26 +186,26 @@ export default function InterviewReview({
                 <div style={{ textAlign: 'center' }}>
                     <div
                         style={{
-                            color: accuracy >= 70 ? '#34d399' : accuracy >= 50 ? '#fbbf24' : '#f87171',
+                            color: accuracy >= 70 ? '#9cba78' : accuracy >= 50 ? '#e0ad55' : '#d8654f',
                             fontSize: '2.2rem',
                             fontWeight: 800,
                         }}
                     >
                         {accuracy}%
                     </div>
-                    <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>mcq accuracy</div>
+                    <div style={{ color: '#ab9d90', fontSize: '0.8rem' }}>mcq accuracy</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
                     <div
                         style={{
-                            color: avgScore >= 7 ? '#34d399' : avgScore >= 5 ? '#fbbf24' : '#f87171',
+                            color: avgScore >= 7 ? '#9cba78' : avgScore >= 5 ? '#e0ad55' : '#d8654f',
                             fontSize: '2.2rem',
                             fontWeight: 800,
                         }}
                     >
                         {avgScore.toFixed(1)}
                     </div>
-                    <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>avg score</div>
+                    <div style={{ color: '#ab9d90', fontSize: '0.8rem' }}>avg score</div>
                 </div>
             </div>
 
@@ -219,11 +219,11 @@ export default function InterviewReview({
                     }}
                 >
                     <div className="glass-card" style={{ padding: 20 }}>
-                        <div style={{ color: '#64748b', fontSize: '0.78rem', marginBottom: 8 }}>Strongest area</div>
-                        <div style={{ color: '#34d399', fontWeight: 700, fontSize: '1.05rem', marginBottom: 4 }}>
+                        <div style={{ color: '#7d7165', fontSize: '0.78rem', marginBottom: 8 }}>Strongest area</div>
+                        <div style={{ color: '#9cba78', fontWeight: 700, fontSize: '1.05rem', marginBottom: 4 }}>
                             {insights.strongestCategory?.label ?? 'Not enough answers yet'}
                         </div>
-                        <div style={{ color: '#94a3b8', fontSize: '0.84rem', lineHeight: 1.6 }}>
+                        <div style={{ color: '#ab9d90', fontSize: '0.84rem', lineHeight: 1.6 }}>
                             {insights.strongestCategory
                                 ? `${insights.strongestCategory.avgScore}/10 average across ${insights.strongestCategory.answered} answer${insights.strongestCategory.answered === 1 ? '' : 's'}.`
                                 : 'Finish more questions to see a reliable strength signal.'}
@@ -231,11 +231,11 @@ export default function InterviewReview({
                     </div>
 
                     <div className="glass-card" style={{ padding: 20 }}>
-                        <div style={{ color: '#64748b', fontSize: '0.78rem', marginBottom: 8 }}>Needs more revision</div>
-                        <div style={{ color: '#fbbf24', fontWeight: 700, fontSize: '1.05rem', marginBottom: 4 }}>
+                        <div style={{ color: '#7d7165', fontSize: '0.78rem', marginBottom: 8 }}>Needs more revision</div>
+                        <div style={{ color: '#e0ad55', fontWeight: 700, fontSize: '1.05rem', marginBottom: 4 }}>
                             {insights.weakestCategory?.label ?? 'Not enough answers yet'}
                         </div>
-                        <div style={{ color: '#94a3b8', fontSize: '0.84rem', lineHeight: 1.6 }}>
+                        <div style={{ color: '#ab9d90', fontSize: '0.84rem', lineHeight: 1.6 }}>
                             {insights.weakestCategory
                                 ? `${insights.weakestCategory.avgScore}/10 average. This is the cleanest place to revise first.`
                                 : 'No weak-area signal yet because there are not enough scored answers.'}
@@ -243,11 +243,11 @@ export default function InterviewReview({
                     </div>
 
                     <div className="glass-card" style={{ padding: 20 }}>
-                        <div style={{ color: '#64748b', fontSize: '0.78rem', marginBottom: 8 }}>Felt hardest most often</div>
-                        <div style={{ color: '#f87171', fontWeight: 700, fontSize: '1.05rem', marginBottom: 4 }}>
+                        <div style={{ color: '#7d7165', fontSize: '0.78rem', marginBottom: 8 }}>Felt hardest most often</div>
+                        <div style={{ color: '#d8654f', fontWeight: 700, fontSize: '1.05rem', marginBottom: 4 }}>
                             {insights.hardestCategory?.label ?? 'Nothing marked Hard yet'}
                         </div>
-                        <div style={{ color: '#94a3b8', fontSize: '0.84rem', lineHeight: 1.6 }}>
+                        <div style={{ color: '#ab9d90', fontSize: '0.84rem', lineHeight: 1.6 }}>
                             {insights.hardestCategory
                                 ? `You marked ${insights.hardestCategory.hardCount} question${insights.hardestCategory.hardCount === 1 ? '' : 's'} from this area as hard.`
                                 : 'Use the felt difficulty buttons during interviews to make this insight sharper.'}
@@ -258,7 +258,7 @@ export default function InterviewReview({
 
             {insights && insights.typeBreakdown.length > 0 && (
                 <div className="glass-card" style={{ padding: 22, marginBottom: 28 }}>
-                    <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 12 }}>Score breakdown</div>
+                    <div style={{ color: '#f5ece1', fontWeight: 600, marginBottom: 12 }}>Score breakdown</div>
                     <div
                         style={{
                             display: 'grid',
@@ -272,15 +272,15 @@ export default function InterviewReview({
                                 style={{
                                     padding: '14px 16px',
                                     borderRadius: 12,
-                                    background: 'rgba(15,22,41,0.6)',
-                                    border: '1px solid rgba(99,179,237,0.1)',
+                                    background: 'rgba(28,22,17,0.6)',
+                                    border: '1px solid rgba(212,150,110,0.1)',
                                 }}
                             >
-                                <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 4 }}>{entry.label}</div>
-                                <div style={{ color: '#38bdf8', fontSize: '1.15rem', fontWeight: 700, marginBottom: 4 }}>
+                                <div style={{ color: '#f5ece1', fontWeight: 600, marginBottom: 4 }}>{entry.label}</div>
+                                <div style={{ color: '#e8825a', fontSize: '1.15rem', fontWeight: 700, marginBottom: 4 }}>
                                     {entry.avgScore}/10
                                 </div>
-                                <div style={{ color: '#94a3b8', fontSize: '0.82rem' }}>
+                                <div style={{ color: '#ab9d90', fontSize: '0.82rem' }}>
                                     {entry.answered} answered question{entry.answered === 1 ? '' : 's'}
                                 </div>
                             </div>
@@ -322,7 +322,7 @@ export default function InterviewReview({
                                             flexWrap: 'wrap',
                                         }}
                                     >
-                                        <span style={{ color: '#64748b', fontSize: '0.78rem', fontWeight: 600 }}>
+                                        <span style={{ color: '#7d7165', fontSize: '0.78rem', fontWeight: 600 }}>
                                             Q{index + 1}
                                         </span>
                                         <DiffBadge difficulty={question.difficulty} />
@@ -331,16 +331,16 @@ export default function InterviewReview({
                                             style={{
                                                 background:
                                                     question.type === 'mcq'
-                                                        ? 'rgba(99,102,241,0.14)'
+                                                        ? 'rgba(196,99,61,0.14)'
                                                         : question.type === 'short-answer'
-                                                          ? 'rgba(45,212,191,0.14)'
-                                                        : 'rgba(244,114,182,0.14)',
+                                                          ? 'rgba(127,179,163,0.14)'
+                                                        : 'rgba(217,138,163,0.14)',
                                                 color:
                                                     question.type === 'mcq'
-                                                        ? '#818cf8'
+                                                        ? '#f0a878'
                                                         : question.type === 'short-answer'
-                                                          ? '#2dd4bf'
-                                                          : '#f472b6',
+                                                          ? '#7fb3a3'
+                                                          : '#d98aa3',
                                             }}
                                         >
                                             {question.type === 'mcq'
@@ -358,16 +358,16 @@ export default function InterviewReview({
                                                 className="badge"
                                                 style={{
                                                     background: answer.isCorrect
-                                                        ? 'rgba(52,211,153,0.14)'
-                                                        : 'rgba(248,113,113,0.14)',
-                                                    color: answer.isCorrect ? '#34d399' : '#f87171',
+                                                        ? 'rgba(156,186,120,0.14)'
+                                                        : 'rgba(216,101,79,0.14)',
+                                                    color: answer.isCorrect ? '#9cba78' : '#d8654f',
                                                 }}
                                             >
                                                 {answer.isCorrect ? 'Strong answer' : 'Needs review'}
                                             </span>
                                         )}
                                     </div>
-                                    <p style={{ color: '#e2e8f0', fontWeight: 500, lineHeight: 1.7 }}>
+                                    <p style={{ color: '#f5ece1', fontWeight: 500, lineHeight: 1.7 }}>
                                         {question.text}
                                     </p>
                                 </div>
@@ -380,14 +380,14 @@ export default function InterviewReview({
                                         style={{
                                             padding: '12px 16px',
                                             borderRadius: 10,
-                                            background: 'rgba(15,22,41,0.6)',
-                                            border: '1px solid rgba(99,179,237,0.1)',
+                                            background: 'rgba(28,22,17,0.6)',
+                                            border: '1px solid rgba(212,150,110,0.1)',
                                         }}
                                     >
-                                        <div style={{ color: '#64748b', fontSize: '0.78rem', marginBottom: 6 }}>
+                                        <div style={{ color: '#7d7165', fontSize: '0.78rem', marginBottom: 6 }}>
                                             Your answer
                                         </div>
-                                        <p style={{ color: '#cbd5e1', fontSize: '0.88rem', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                                        <p style={{ color: '#d8cdc1', fontSize: '0.88rem', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
                                             {question.type === 'mcq' ? selectedOption ?? 'No option selected' : answer.text ?? 'No answer submitted'}
                                         </p>
                                     </div>
@@ -396,14 +396,14 @@ export default function InterviewReview({
                                         style={{
                                             padding: '12px 16px',
                                             borderRadius: 10,
-                                            background: 'rgba(99,102,241,0.05)',
-                                            border: '1px solid rgba(99,102,241,0.2)',
+                                            background: 'rgba(196,99,61,0.05)',
+                                            border: '1px solid rgba(196,99,61,0.2)',
                                         }}
                                     >
-                                        <div style={{ color: '#818cf8', fontSize: '0.78rem', marginBottom: 6 }}>
+                                        <div style={{ color: '#f0a878', fontSize: '0.78rem', marginBottom: 6 }}>
                                             Why this was right or wrong
                                         </div>
-                                        <p style={{ color: '#94a3b8', fontSize: '0.88rem', lineHeight: 1.7 }}>
+                                        <p style={{ color: '#ab9d90', fontSize: '0.88rem', lineHeight: 1.7 }}>
                                             {answer.feedback}
                                         </p>
                                     </div>
@@ -412,13 +412,13 @@ export default function InterviewReview({
                                         style={{
                                             padding: '12px 16px',
                                             borderRadius: 10,
-                                            background: 'rgba(56,189,248,0.05)',
-                                            border: '1px solid rgba(56,189,248,0.15)',
+                                            background: 'rgba(232,130,90,0.05)',
+                                            border: '1px solid rgba(232,130,90,0.15)',
                                         }}
                                     >
                                         <div
                                             style={{
-                                                color: '#38bdf8',
+                                                color: '#e8825a',
                                                 fontSize: '0.78rem',
                                                 marginBottom: 6,
                                                 display: 'flex',
@@ -428,7 +428,7 @@ export default function InterviewReview({
                                         >
                                             <BookOpen size={13} /> Best viva answer
                                         </div>
-                                        <p style={{ color: '#94a3b8', fontSize: '0.88rem', lineHeight: 1.7 }}>
+                                        <p style={{ color: '#ab9d90', fontSize: '0.88rem', lineHeight: 1.7 }}>
                                             {answer.aiAnswer}
                                         </p>
                                     </div>
@@ -438,14 +438,14 @@ export default function InterviewReview({
                                             style={{
                                                 padding: '12px 16px',
                                                 borderRadius: 10,
-                                                background: 'rgba(52,211,153,0.05)',
-                                                border: '1px solid rgba(52,211,153,0.18)',
+                                                background: 'rgba(156,186,120,0.05)',
+                                                border: '1px solid rgba(156,186,120,0.18)',
                                             }}
                                         >
-                                            <div style={{ color: '#34d399', fontSize: '0.78rem', marginBottom: 6 }}>
+                                            <div style={{ color: '#9cba78', fontSize: '0.78rem', marginBottom: 6 }}>
                                                 Correct option
                                             </div>
-                                            <p style={{ color: '#e2e8f0', fontSize: '0.88rem', lineHeight: 1.7 }}>
+                                            <p style={{ color: '#f5ece1', fontSize: '0.88rem', lineHeight: 1.7 }}>
                                                 {correctOption}
                                             </p>
                                         </div>
@@ -456,21 +456,21 @@ export default function InterviewReview({
                                             style={{
                                                 padding: '12px 16px',
                                                 borderRadius: 10,
-                                                background: 'rgba(251,191,36,0.05)',
-                                                border: '1px solid rgba(251,191,36,0.2)',
+                                                background: 'rgba(224,173,85,0.05)',
+                                                border: '1px solid rgba(224,173,85,0.2)',
                                             }}
                                         >
-                                            <div style={{ color: '#fbbf24', fontSize: '0.78rem', marginBottom: 6 }}>
+                                            <div style={{ color: '#e0ad55', fontSize: '0.78rem', marginBottom: 6 }}>
                                                 Your note
                                             </div>
-                                            <p style={{ color: '#e2e8f0', fontSize: '0.88rem', lineHeight: 1.7 }}>
+                                            <p style={{ color: '#f5ece1', fontSize: '0.88rem', lineHeight: 1.7 }}>
                                                 {answer.userNote}
                                             </p>
                                         </div>
                                     )}
                                 </div>
                             ) : (
-                                <div style={{ color: '#64748b', fontSize: '0.85rem', fontStyle: 'italic' }}>
+                                <div style={{ color: '#7d7165', fontSize: '0.85rem', fontStyle: 'italic' }}>
                                     Not answered
                                 </div>
                             )}

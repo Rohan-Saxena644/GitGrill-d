@@ -13,9 +13,11 @@ export default function Navbar() {
         <>
             <style>{`
         .nav-logo-text {
-          font-weight: 700;
-          font-size: 1rem;
-          background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+          font-family: var(--font-display);
+          font-weight: 600;
+          font-size: 1.08rem;
+          letter-spacing: -0.01em;
+          background: linear-gradient(135deg, #e8825a 0%, #f0a878 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           white-space: nowrap;
@@ -41,9 +43,9 @@ export default function Navbar() {
 
             <nav
                 style={{
-                    background: 'rgba(10,15,30,0.88)',
+                    background: 'rgba(21,17,14,0.88)',
                     backdropFilter: 'blur(14px)',
-                    borderBottom: '1px solid rgba(99,179,237,0.1)',
+                    borderBottom: '1px solid rgba(212,150,110,0.1)',
                     position: 'sticky',
                     top: 0,
                     zIndex: 100,
@@ -72,17 +74,18 @@ export default function Navbar() {
                     >
                         <div
                             style={{
-                                background: 'linear-gradient(135deg, #0ea5e9, #6366f1)',
-                                borderRadius: 8,
+                                background: 'linear-gradient(135deg, #e8825a, #c4633d)',
+                                borderRadius: 9,
                                 width: 34,
                                 height: 34,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 flexShrink: 0,
+                                boxShadow: '0 4px 14px -4px rgba(232,130,90,0.45)',
                             }}
                         >
-                            <Code2 size={18} color="white" />
+                            <Code2 size={18} color="#20160e" />
                         </div>
                         <span className="nav-logo-text">CodeViva</span>
                     </Link>
@@ -129,7 +132,7 @@ export default function Navbar() {
                                             height={30}
                                             style={{
                                                 borderRadius: '50%',
-                                                border: '2px solid rgba(56,189,248,0.35)',
+                                                border: '2px solid rgba(232,130,90,0.35)',
                                                 flexShrink: 0,
                                             }}
                                         />
@@ -142,9 +145,9 @@ export default function Navbar() {
                                         title="Sign out"
                                         style={{
                                             background: 'transparent',
-                                            border: '1px solid rgba(248,113,113,0.25)',
+                                            border: '1px solid rgba(216,101,79,0.25)',
                                             borderRadius: 8,
-                                            color: '#f87171',
+                                            color: '#d8654f',
                                             cursor: 'pointer',
                                             padding: '6px',
                                             display: 'flex',

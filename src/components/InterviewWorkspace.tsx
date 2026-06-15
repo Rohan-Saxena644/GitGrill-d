@@ -234,14 +234,14 @@ export default function InterviewWorkspace({
                         display: 'flex',
                         alignItems: 'center',
                         gap: 6,
-                        color: '#94a3b8',
+                        color: '#ab9d90',
                         textDecoration: 'none',
                         fontSize: '0.875rem',
                     }}
                 >
                     <ArrowLeft size={15} /> {mode === 'saved' ? 'Dashboard' : 'Back'}
                 </Link>
-                <span style={{ color: '#94a3b8', fontSize: '0.875rem' }}>
+                <span style={{ color: '#ab9d90', fontSize: '0.875rem' }}>
                     {session.interviewTrack === 'systems'
                         ? `Systems Track · ${session.systemTopics?.length ?? 0} topics`
                         : `${session.repoOwner}/${session.repoName}`}
@@ -250,17 +250,17 @@ export default function InterviewWorkspace({
 
             <div style={{ marginBottom: 32 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <span style={{ color: '#94a3b8', fontSize: '0.82rem' }}>
+                    <span style={{ color: '#ab9d90', fontSize: '0.82rem' }}>
                         Question {currentQ + 1} of {totalQ}
                     </span>
-                    <span style={{ color: '#38bdf8', fontSize: '0.82rem', fontWeight: 600 }}>
+                    <span style={{ color: '#e8825a', fontSize: '0.82rem', fontWeight: 600 }}>
                         {Math.round(progress)}% complete
                     </span>
                 </div>
                 <div
                     style={{
                         height: 6,
-                        background: 'rgba(99,179,237,0.12)',
+                        background: 'rgba(212,150,110,0.12)',
                         borderRadius: 3,
                         overflow: 'hidden',
                     }}
@@ -269,7 +269,7 @@ export default function InterviewWorkspace({
                         style={{
                             height: '100%',
                             width: `${progress}%`,
-                            background: 'linear-gradient(90deg, #0ea5e9, #6366f1)',
+                            background: 'linear-gradient(90deg, #e8825a, #c4633d)',
                             borderRadius: 3,
                             transition: 'width 0.4s',
                         }}
@@ -286,16 +286,16 @@ export default function InterviewWorkspace({
                         style={{
                             background:
                                 currentQuestion.type === 'mcq'
-                                    ? 'rgba(99,102,241,0.14)'
+                                    ? 'rgba(196,99,61,0.14)'
                                     : currentQuestion.type === 'short-answer'
-                                      ? 'rgba(45,212,191,0.14)'
-                                      : 'rgba(244,114,182,0.14)',
+                                      ? 'rgba(127,179,163,0.14)'
+                                      : 'rgba(217,138,163,0.14)',
                             color:
                                 currentQuestion.type === 'mcq'
-                                    ? '#818cf8'
+                                    ? '#f0a878'
                                     : currentQuestion.type === 'short-answer'
-                                      ? '#2dd4bf'
-                                      : '#f472b6',
+                                      ? '#7fb3a3'
+                                      : '#d98aa3',
                         }}
                     >
                         {currentQuestion.type === 'mcq'
@@ -305,12 +305,12 @@ export default function InterviewWorkspace({
                               : 'Descriptive'}
                     </span>
                     {mode === 'guest' && (
-                        <span className="badge" style={{ background: 'rgba(251,191,36,0.12)', color: '#fbbf24' }}>
+                        <span className="badge" style={{ background: 'rgba(224,173,85,0.12)', color: '#e0ad55' }}>
                             Guest session
                         </span>
                     )}
                 </div>
-                <p style={{ color: '#e2e8f0', fontSize: '1.05rem', lineHeight: 1.75, fontWeight: 500 }}>
+                <p style={{ color: '#f5ece1', fontSize: '1.05rem', lineHeight: 1.75, fontWeight: 500 }}>
                     {currentQuestion.text}
                 </p>
             </div>
@@ -319,7 +319,7 @@ export default function InterviewWorkspace({
                 <div className="glass-card animate-fade-in" style={{ padding: 24, marginBottom: 16 }}>
                     {currentQuestion.type === 'mcq' ? (
                         <>
-                            <label style={{ color: '#94a3b8', fontSize: '0.85rem', display: 'block', marginBottom: 12 }}>
+                            <label style={{ color: '#ab9d90', fontSize: '0.85rem', display: 'block', marginBottom: 12 }}>
                                 Pick the best answer
                             </label>
                             <div style={{ display: 'grid', gap: 12 }}>
@@ -333,10 +333,10 @@ export default function InterviewWorkspace({
                                                 padding: '14px 16px',
                                                 borderRadius: 12,
                                                 border: active
-                                                    ? '1px solid rgba(56,189,248,0.6)'
+                                                    ? '1px solid rgba(232,130,90,0.6)'
                                                     : '1px solid var(--border)',
-                                                background: active ? 'rgba(56,189,248,0.08)' : 'rgba(15,22,41,0.65)',
-                                                color: active ? '#e2e8f0' : '#94a3b8',
+                                                background: active ? 'rgba(232,130,90,0.08)' : 'rgba(28,22,17,0.65)',
+                                                color: active ? '#f5ece1' : '#ab9d90',
                                                 textAlign: 'left',
                                                 cursor: 'pointer',
                                                 transition: 'all 0.15s',
@@ -345,7 +345,7 @@ export default function InterviewWorkspace({
                                             <div style={{ display: 'flex', gap: 12 }}>
                                                 <span
                                                     style={{
-                                                        color: active ? '#38bdf8' : '#64748b',
+                                                        color: active ? '#e8825a' : '#7d7165',
                                                         fontWeight: 700,
                                                         minWidth: 18,
                                                     }}
@@ -361,7 +361,7 @@ export default function InterviewWorkspace({
                         </>
                     ) : (
                         <>
-                            <label style={{ color: '#94a3b8', fontSize: '0.85rem', display: 'block', marginBottom: 8 }}>
+                            <label style={{ color: '#ab9d90', fontSize: '0.85rem', display: 'block', marginBottom: 8 }}>
                                 {currentQuestion.type === 'short-answer' ? 'Write a compact answer' : 'Write your answer'}
                             </label>
                             <textarea
@@ -382,7 +382,7 @@ export default function InterviewWorkspace({
                         <div
                             style={{
                                 marginTop: 10,
-                                color: '#f87171',
+                                color: '#d8654f',
                                 fontSize: '0.85rem',
                                 display: 'flex',
                                 gap: 6,
@@ -423,10 +423,10 @@ export default function InterviewWorkspace({
                         <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', marginBottom: 20 }}>
                             <ScoreDisplay score={evaluation.score} />
                             <div>
-                                <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 8 }}>
+                                <div style={{ color: '#f5ece1', fontWeight: 600, marginBottom: 8 }}>
                                     {evaluation.isCorrect ? 'You got it right' : 'You can tighten this answer'}
                                 </div>
-                                <p style={{ color: '#94a3b8', lineHeight: 1.7, fontSize: '0.9rem' }}>
+                                <p style={{ color: '#ab9d90', lineHeight: 1.7, fontSize: '0.9rem' }}>
                                     {evaluation.feedback}
                                 </p>
                             </div>
@@ -435,13 +435,13 @@ export default function InterviewWorkspace({
                             style={{
                                 padding: 16,
                                 borderRadius: 10,
-                                background: 'rgba(56,189,248,0.05)',
-                                border: '1px solid rgba(56,189,248,0.15)',
+                                background: 'rgba(232,130,90,0.05)',
+                                border: '1px solid rgba(232,130,90,0.15)',
                             }}
                         >
                             <div
                                 style={{
-                                    color: '#38bdf8',
+                                    color: '#e8825a',
                                     fontWeight: 600,
                                     fontSize: '0.85rem',
                                     marginBottom: 8,
@@ -451,17 +451,17 @@ export default function InterviewWorkspace({
                             >
                                 <BookOpen size={15} /> Interview-ready explanation
                             </div>
-                            <p style={{ color: '#94a3b8', lineHeight: 1.75, fontSize: '0.88rem' }}>
+                            <p style={{ color: '#ab9d90', lineHeight: 1.75, fontSize: '0.88rem' }}>
                                 {evaluation.aiAnswer}
                             </p>
                         </div>
                     </div>
 
                     <div className="glass-card" style={{ padding: 20, marginBottom: 16 }}>
-                        <div style={{ color: '#64748b', fontSize: '0.8rem', marginBottom: 6 }}>
+                        <div style={{ color: '#7d7165', fontSize: '0.8rem', marginBottom: 6 }}>
                             {currentQuestion.type === 'mcq' ? 'Your selection' : 'Your answer'}
                         </div>
-                        <p style={{ color: '#cbd5e1', fontSize: '0.88rem', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                        <p style={{ color: '#d8cdc1', fontSize: '0.88rem', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
                             {currentQuestion.type === 'mcq' && selectedOptionIndex !== null
                                 ? `${String.fromCharCode(65 + selectedOptionIndex)}. ${(currentQuestion.options ?? [])[selectedOptionIndex]}`
                                 : answerText}
@@ -469,7 +469,7 @@ export default function InterviewWorkspace({
                     </div>
 
                     <div className="glass-card" style={{ padding: 24, marginBottom: 20 }}>
-                        <label style={{ color: '#94a3b8', fontSize: '0.85rem', display: 'block', marginBottom: 6 }}>
+                        <label style={{ color: '#ab9d90', fontSize: '0.85rem', display: 'block', marginBottom: 6 }}>
                             Add your own note or correction (optional)
                         </label>
                         <textarea
@@ -483,7 +483,7 @@ export default function InterviewWorkspace({
                         <div style={{ marginTop: 16 }}>
                             <div
                                 style={{
-                                    color: '#94a3b8',
+                                    color: '#ab9d90',
                                     fontSize: '0.85rem',
                                     marginBottom: 8,
                                     display: 'flex',
@@ -506,30 +506,30 @@ export default function InterviewWorkspace({
                                                 userDiff === difficulty
                                                     ? `1px solid ${
                                                           difficulty === 'Easy'
-                                                              ? '#34d399'
+                                                              ? '#9cba78'
                                                               : difficulty === 'Hard'
-                                                                ? '#f87171'
-                                                                : '#fbbf24'
+                                                                ? '#d8654f'
+                                                                : '#e0ad55'
                                                       }`
                                                     : '1px solid var(--border)',
                                             background:
                                                 userDiff === difficulty
                                                     ? `${
                                                           difficulty === 'Easy'
-                                                              ? 'rgba(52,211,153,0.1)'
+                                                              ? 'rgba(156,186,120,0.1)'
                                                               : difficulty === 'Hard'
-                                                                ? 'rgba(248,113,113,0.1)'
-                                                                : 'rgba(251,191,36,0.1)'
+                                                                ? 'rgba(216,101,79,0.1)'
+                                                                : 'rgba(224,173,85,0.1)'
                                                       }`
                                                     : 'transparent',
                                             color:
                                                 userDiff === difficulty
                                                     ? difficulty === 'Easy'
-                                                        ? '#34d399'
+                                                        ? '#9cba78'
                                                         : difficulty === 'Hard'
-                                                          ? '#f87171'
-                                                          : '#fbbf24'
-                                                    : '#64748b',
+                                                          ? '#d8654f'
+                                                          : '#e0ad55'
+                                                    : '#7d7165',
                                             fontSize: '0.82rem',
                                             fontWeight: userDiff === difficulty ? 600 : 400,
                                         }}

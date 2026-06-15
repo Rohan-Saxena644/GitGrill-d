@@ -40,11 +40,11 @@ const SYSTEM_TOPIC_OPTIONS: SystemTopic[] = [
 ];
 
 const TAG_OPTIONS: { value: FileTag; label: string; color: string }[] = [
-    { value: 'untagged', label: 'Skip', color: '#64748b' },
-    { value: 'core-logic', label: 'Core Logic', color: '#38bdf8' },
-    { value: 'boilerplate', label: 'Boilerplate', color: '#94a3b8' },
-    { value: 'config', label: 'Config', color: '#fbbf24' },
-    { value: 'tests', label: 'Tests', color: '#34d399' },
+    { value: 'untagged', label: 'Skip', color: '#7d7165' },
+    { value: 'core-logic', label: 'Core Logic', color: '#e8825a' },
+    { value: 'boilerplate', label: 'Boilerplate', color: '#ab9d90' },
+    { value: 'config', label: 'Config', color: '#e0ad55' },
+    { value: 'tests', label: 'Tests', color: '#9cba78' },
 ];
 
 const TRACK_OPTIONS: {
@@ -312,8 +312,8 @@ export default function NewInterviewPage() {
                     }}
                 >
                     <div>
-                        <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 4 }}>Guest mode is on</div>
-                        <p style={{ color: '#94a3b8', fontSize: '0.86rem', lineHeight: 1.6 }}>
+                        <div style={{ color: '#f5ece1', fontWeight: 600, marginBottom: 4 }}>Guest mode is on</div>
+                        <p style={{ color: '#ab9d90', fontSize: '0.86rem', lineHeight: 1.6 }}>
                             You can complete the full interview without logging in. Guest results are not saved and
                             disappear after 15 minutes of inactivity.
                         </p>
@@ -349,7 +349,7 @@ export default function NewInterviewPage() {
                                 style={{
                                     fontSize: '0.82rem',
                                     fontWeight: 500,
-                                    color: step >= item.n ? '#e2e8f0' : '#64748b',
+                                    color: step >= item.n ? '#f5ece1' : '#7d7165',
                                     whiteSpace: 'nowrap',
                                 }}
                             >
@@ -362,7 +362,7 @@ export default function NewInterviewPage() {
                                     flex: 1,
                                     height: 1,
                                     background:
-                                        step > item.n ? 'rgba(56,189,248,0.4)' : 'rgba(99,179,237,0.12)',
+                                        step > item.n ? 'rgba(232,130,90,0.4)' : 'rgba(212,150,110,0.12)',
                                     margin: '0 12px',
                                 }}
                             />
@@ -377,9 +377,9 @@ export default function NewInterviewPage() {
                         padding: '12px 16px',
                         borderRadius: 10,
                         marginBottom: 20,
-                        background: 'rgba(248,113,113,0.08)',
-                        border: '1px solid rgba(248,113,113,0.25)',
-                        color: '#f87171',
+                        background: 'rgba(216,101,79,0.08)',
+                        border: '1px solid rgba(216,101,79,0.25)',
+                        color: '#d8654f',
                         display: 'flex',
                         gap: 10,
                         alignItems: 'flex-start',
@@ -392,10 +392,10 @@ export default function NewInterviewPage() {
 
             {step === 1 && (
                 <div className="glass-card animate-fade-in" style={{ padding: 'clamp(20px,5vw,32px)' }}>
-                    <h2 style={{ color: '#e2e8f0', fontWeight: 700, fontSize: 'clamp(1.1rem,3vw,1.4rem)', marginBottom: 8 }}>
+                    <h2 style={{ color: '#f5ece1', fontWeight: 700, fontSize: 'clamp(1.1rem,3vw,1.4rem)', marginBottom: 8 }}>
                         Choose your track
                     </h2>
-                    <p style={{ color: '#94a3b8', marginBottom: 24, fontSize: '0.875rem' }}>
+                    <p style={{ color: '#ab9d90', marginBottom: 24, fontSize: '0.875rem' }}>
                         Pick between repo-based viva prep and a systems track with scenario questions that need fuller interview-style answers.
                     </p>
 
@@ -419,18 +419,18 @@ export default function NewInterviewPage() {
                                     style={{
                                         padding: '18px',
                                         borderRadius: 14,
-                                        border: active ? '1px solid rgba(56,189,248,0.6)' : '1px solid var(--border)',
-                                        background: active ? 'rgba(56,189,248,0.08)' : 'rgba(19,29,53,0.4)',
-                                        color: '#e2e8f0',
+                                        border: active ? '1px solid rgba(232,130,90,0.6)' : '1px solid var(--border)',
+                                        background: active ? 'rgba(232,130,90,0.08)' : 'rgba(34,28,22,0.4)',
+                                        color: '#f5ece1',
                                         cursor: 'pointer',
                                         textAlign: 'left',
                                     }}
                                 >
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                                        <span style={{ color: active ? '#38bdf8' : '#94a3b8' }}>{option.icon}</span>
+                                        <span style={{ color: active ? '#e8825a' : '#ab9d90' }}>{option.icon}</span>
                                         <span style={{ fontWeight: 600 }}>{option.title}</span>
                                     </div>
-                                    <div style={{ color: '#94a3b8', fontSize: '0.84rem', lineHeight: 1.6 }}>
+                                    <div style={{ color: '#ab9d90', fontSize: '0.84rem', lineHeight: 1.6 }}>
                                         {option.description}
                                     </div>
                                 </button>
@@ -440,8 +440,8 @@ export default function NewInterviewPage() {
 
                     {track === 'repo-viva' ? (
                         <>
-                            <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 8 }}>Paste your GitHub repo URL</div>
-                            <p style={{ color: '#94a3b8', marginBottom: 18, fontSize: '0.875rem' }}>
+                            <div style={{ color: '#f5ece1', fontWeight: 600, marginBottom: 8 }}>Paste your GitHub repo URL</div>
+                            <p style={{ color: '#ab9d90', marginBottom: 18, fontSize: '0.875rem' }}>
                                 Public repositories work best. This track generates 10 MCQs plus 2 descriptive questions from your tagged files.
                             </p>
                             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -468,9 +468,9 @@ export default function NewInterviewPage() {
                             style={{
                                 padding: '14px 16px',
                                 borderRadius: 12,
-                                background: 'rgba(56,189,248,0.05)',
-                                border: '1px solid rgba(56,189,248,0.12)',
-                                color: '#94a3b8',
+                                background: 'rgba(232,130,90,0.05)',
+                                border: '1px solid rgba(232,130,90,0.12)',
+                                color: '#ab9d90',
                                 fontSize: '0.86rem',
                                 lineHeight: 1.65,
                             }}
@@ -490,17 +490,17 @@ export default function NewInterviewPage() {
                 <div className="animate-fade-in">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20, gap: 16, flexWrap: 'wrap' }}>
                         <div>
-                            <h2 style={{ color: '#e2e8f0', fontWeight: 700, fontSize: 'clamp(1.1rem,3vw,1.4rem)', marginBottom: 4 }}>
+                            <h2 style={{ color: '#f5ece1', fontWeight: 700, fontSize: 'clamp(1.1rem,3vw,1.4rem)', marginBottom: 4 }}>
                                 Tag your files
                             </h2>
-                            <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
-                                <strong style={{ color: '#e2e8f0' }}>{files.length}</strong> files in{' '}
-                                <strong style={{ color: '#38bdf8' }}>{repoOwner}/{repoName}</strong>. Start from the suggested tags, then adjust the parts you want the interview to focus on.
+                            <p style={{ color: '#ab9d90', fontSize: '0.85rem' }}>
+                                <strong style={{ color: '#f5ece1' }}>{files.length}</strong> files in{' '}
+                                <strong style={{ color: '#e8825a' }}>{repoOwner}/{repoName}</strong>. Start from the suggested tags, then adjust the parts you want the interview to focus on.
                             </p>
                         </div>
                         <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                            <div style={{ color: '#38bdf8', fontWeight: 800, fontSize: '1.6rem', lineHeight: 1 }}>{taggedCount}</div>
-                            <div style={{ color: '#64748b', fontSize: '0.72rem', marginTop: 2 }}>tagged</div>
+                            <div style={{ color: '#e8825a', fontWeight: 800, fontSize: '1.6rem', lineHeight: 1 }}>{taggedCount}</div>
+                            <div style={{ color: '#7d7165', fontSize: '0.72rem', marginTop: 2 }}>tagged</div>
                         </div>
                     </div>
 
@@ -551,12 +551,12 @@ export default function NewInterviewPage() {
                                     justifyContent: 'space-between',
                                     gap: 12,
                                     padding: '10px 16px',
-                                    borderBottom: index < files.length - 1 ? '1px solid rgba(99,179,237,0.07)' : 'none',
+                                    borderBottom: index < files.length - 1 ? '1px solid rgba(212,150,110,0.07)' : 'none',
                                 }}
                             >
                                 <span
                                     style={{
-                                        color: tags[file.path] === 'untagged' ? '#475569' : '#e2e8f0',
+                                        color: tags[file.path] === 'untagged' ? '#695e54' : '#f5ece1',
                                         fontSize: '0.8rem',
                                         fontFamily: 'monospace',
                                         overflow: 'hidden',
@@ -603,10 +603,10 @@ export default function NewInterviewPage() {
 
             {step === 2 && track === 'systems' && (
                 <div className="glass-card animate-fade-in" style={{ padding: 'clamp(20px,5vw,32px)' }}>
-                    <h2 style={{ color: '#e2e8f0', fontWeight: 700, fontSize: 'clamp(1.1rem,3vw,1.4rem)', marginBottom: 8 }}>
+                    <h2 style={{ color: '#f5ece1', fontWeight: 700, fontSize: 'clamp(1.1rem,3vw,1.4rem)', marginBottom: 8 }}>
                         Choose systems topics
                     </h2>
-                    <p style={{ color: '#94a3b8', fontSize: '0.875rem', marginBottom: 24 }}>
+                    <p style={{ color: '#ab9d90', fontSize: '0.875rem', marginBottom: 24 }}>
                         Pick the topics you want to be interviewed on. The systems track uses richer answer options and a mix of MCQs, short-answer prompts, and deeper descriptive questions.
                     </p>
 
@@ -633,9 +633,9 @@ export default function NewInterviewPage() {
                                     style={{
                                         padding: '16px',
                                         borderRadius: 12,
-                                        border: active ? '1px solid rgba(56,189,248,0.6)' : '1px solid var(--border)',
-                                        background: active ? 'rgba(56,189,248,0.08)' : 'rgba(19,29,53,0.4)',
-                                        color: active ? '#e2e8f0' : '#94a3b8',
+                                        border: active ? '1px solid rgba(232,130,90,0.6)' : '1px solid var(--border)',
+                                        background: active ? 'rgba(232,130,90,0.08)' : 'rgba(34,28,22,0.4)',
+                                        color: active ? '#f5ece1' : '#ab9d90',
                                         cursor: 'pointer',
                                         textAlign: 'left',
                                         fontSize: '0.9rem',
@@ -658,17 +658,17 @@ export default function NewInterviewPage() {
 
             {step === 3 && (
                 <div className="glass-card animate-fade-in" style={{ padding: 'clamp(20px,5vw,32px)' }}>
-                    <h2 style={{ color: '#e2e8f0', fontWeight: 700, fontSize: 'clamp(1.1rem,3vw,1.4rem)', marginBottom: 8 }}>
+                    <h2 style={{ color: '#f5ece1', fontWeight: 700, fontSize: 'clamp(1.1rem,3vw,1.4rem)', marginBottom: 8 }}>
                         Tune the interview
                     </h2>
-                    <p style={{ color: '#94a3b8', fontSize: '0.875rem', marginBottom: 24 }}>
+                    <p style={{ color: '#ab9d90', fontSize: '0.875rem', marginBottom: 24 }}>
                         {track === 'repo-viva'
                             ? 'This track gives you 10 MCQs and 2 descriptive repo-based questions.'
                             : 'This track gives you a more answer-heavy systems mix with MCQs, short-answer prompts, and descriptive design questions.'}
                     </p>
 
                     <div style={{ marginBottom: 24 }}>
-                        <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 10 }}>Interview style</div>
+                        <div style={{ color: '#f5ece1', fontWeight: 600, marginBottom: 10 }}>Interview style</div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%,220px), 1fr))', gap: 12 }}>
                             {INTERVIEW_STYLE_OPTIONS.map((option) => {
                                 const active = interviewStyle === option.value;
@@ -679,15 +679,15 @@ export default function NewInterviewPage() {
                                         style={{
                                             padding: '16px',
                                             borderRadius: 12,
-                                            border: active ? '1px solid rgba(56,189,248,0.6)' : '1px solid var(--border)',
-                                            background: active ? 'rgba(56,189,248,0.08)' : 'rgba(19,29,53,0.4)',
-                                            color: '#e2e8f0',
+                                            border: active ? '1px solid rgba(232,130,90,0.6)' : '1px solid var(--border)',
+                                            background: active ? 'rgba(232,130,90,0.08)' : 'rgba(34,28,22,0.4)',
+                                            color: '#f5ece1',
                                             cursor: 'pointer',
                                             textAlign: 'left',
                                         }}
                                     >
                                         <div style={{ fontWeight: 600, marginBottom: 6 }}>{option.title}</div>
-                                        <div style={{ color: '#94a3b8', fontSize: '0.84rem', lineHeight: 1.6 }}>
+                                        <div style={{ color: '#ab9d90', fontSize: '0.84rem', lineHeight: 1.6 }}>
                                             {option.description}
                                         </div>
                                     </button>
@@ -697,7 +697,7 @@ export default function NewInterviewPage() {
                     </div>
 
                     <div style={{ marginBottom: 24 }}>
-                        <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 10 }}>Difficulty preset</div>
+                        <div style={{ color: '#f5ece1', fontWeight: 600, marginBottom: 10 }}>Difficulty preset</div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%,220px), 1fr))', gap: 12 }}>
                             {DIFFICULTY_PRESET_OPTIONS.map((option) => {
                                 const active = difficultyPreset === option.value;
@@ -708,15 +708,15 @@ export default function NewInterviewPage() {
                                         style={{
                                             padding: '16px',
                                             borderRadius: 12,
-                                            border: active ? '1px solid rgba(56,189,248,0.6)' : '1px solid var(--border)',
-                                            background: active ? 'rgba(56,189,248,0.08)' : 'rgba(19,29,53,0.4)',
-                                            color: '#e2e8f0',
+                                            border: active ? '1px solid rgba(232,130,90,0.6)' : '1px solid var(--border)',
+                                            background: active ? 'rgba(232,130,90,0.08)' : 'rgba(34,28,22,0.4)',
+                                            color: '#f5ece1',
                                             cursor: 'pointer',
                                             textAlign: 'left',
                                         }}
                                     >
                                         <div style={{ fontWeight: 600, marginBottom: 6 }}>{option.title}</div>
-                                        <div style={{ color: '#94a3b8', fontSize: '0.84rem', lineHeight: 1.6 }}>
+                                        <div style={{ color: '#ab9d90', fontSize: '0.84rem', lineHeight: 1.6 }}>
                                             {option.description}
                                         </div>
                                     </button>
@@ -725,7 +725,7 @@ export default function NewInterviewPage() {
                         </div>
                     </div>
 
-                    <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 10 }}>
+                    <div style={{ color: '#f5ece1', fontWeight: 600, marginBottom: 10 }}>
                         {track === 'repo-viva' ? 'Focus areas' : 'Cross-cutting focus areas'}
                     </div>
                     <div
@@ -751,9 +751,9 @@ export default function NewInterviewPage() {
                                     style={{
                                         padding: '16px',
                                         borderRadius: 12,
-                                        border: active ? '1px solid rgba(56,189,248,0.6)' : '1px solid var(--border)',
-                                        background: active ? 'rgba(56,189,248,0.08)' : 'rgba(19,29,53,0.4)',
-                                        color: active ? '#38bdf8' : '#94a3b8',
+                                        border: active ? '1px solid rgba(232,130,90,0.6)' : '1px solid var(--border)',
+                                        background: active ? 'rgba(232,130,90,0.08)' : 'rgba(34,28,22,0.4)',
+                                        color: active ? '#e8825a' : '#ab9d90',
                                         fontWeight: active ? 600 : 400,
                                         cursor: 'pointer',
                                         textAlign: 'left',
@@ -770,13 +770,13 @@ export default function NewInterviewPage() {
                                             height: 20,
                                             borderRadius: 6,
                                             flexShrink: 0,
-                                            border: active ? '2px solid #38bdf8' : '2px solid #64748b',
+                                            border: active ? '2px solid #e8825a' : '2px solid #7d7165',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
                                         }}
                                     >
-                                        {active && <Check size={12} color="#38bdf8" />}
+                                        {active && <Check size={12} color="#e8825a" />}
                                     </div>
                                     {area}
                                 </button>
@@ -785,10 +785,10 @@ export default function NewInterviewPage() {
                     </div>
 
                     <div style={{ marginBottom: 24 }}>
-                        <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 8 }}>
+                        <div style={{ color: '#f5ece1', fontWeight: 600, marginBottom: 8 }}>
                             Resume or experience context (optional)
                         </div>
-                        <p style={{ color: '#94a3b8', fontSize: '0.84rem', lineHeight: 1.65, marginBottom: 10 }}>
+                        <p style={{ color: '#ab9d90', fontSize: '0.84rem', lineHeight: 1.65, marginBottom: 10 }}>
                             Paste a short resume summary, internship experience, project stack, or the kind of roles
                             you are targeting. Leave it empty if you want a generic interview.
                         </p>
@@ -799,7 +799,7 @@ export default function NewInterviewPage() {
                             placeholder="Example: Built MERN and Next.js projects, used MongoDB, REST APIs, JWT auth, and basic deployment. Interested in backend and full-stack roles."
                             style={{ minHeight: 130 }}
                         />
-                        <div style={{ color: '#64748b', fontSize: '0.76rem', marginTop: 6 }}>
+                        <div style={{ color: '#7d7165', fontSize: '0.76rem', marginTop: 6 }}>
                             {resumeContext.length}/4000 characters
                         </div>
                     </div>
@@ -808,9 +808,9 @@ export default function NewInterviewPage() {
                         style={{
                             padding: '14px 16px',
                             borderRadius: 12,
-                            background: 'rgba(56,189,248,0.05)',
-                            border: '1px solid rgba(56,189,248,0.12)',
-                            color: '#94a3b8',
+                            background: 'rgba(232,130,90,0.05)',
+                            border: '1px solid rgba(232,130,90,0.12)',
+                            color: '#ab9d90',
                             fontSize: '0.84rem',
                             marginBottom: 24,
                             lineHeight: 1.65,
@@ -822,7 +822,7 @@ export default function NewInterviewPage() {
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-                        <p style={{ color: '#64748b', fontSize: '0.82rem' }}>
+                        <p style={{ color: '#7d7165', fontSize: '0.82rem' }}>
                             {track === 'repo-viva'
                                 ? `${taggedCount} file${taggedCount !== 1 ? 's' : ''} tagged`
                                 : `${systemTopics.length} systems topic${systemTopics.length !== 1 ? 's' : ''} selected`}{' '}

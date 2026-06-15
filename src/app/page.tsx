@@ -72,20 +72,52 @@ export default function LandingPage() {
                         width: 'min(800px, 100vw)',
                         height: 500,
                         borderRadius: '50%',
-                        background: 'radial-gradient(ellipse, rgba(56,189,248,0.08) 0%, transparent 70%)',
+                        background: 'radial-gradient(ellipse, rgba(232,130,90,0.08) 0%, transparent 70%)',
                         pointerEvents: 'none',
+                    }}
+                />
+                <div
+                    className="texture-marks"
+                    style={{
+                        position: 'absolute',
+                        inset: 0,
+                        pointerEvents: 'none',
+                        maskImage: 'linear-gradient(to bottom, black, transparent)',
+                        WebkitMaskImage: 'linear-gradient(to bottom, black, transparent)',
                     }}
                 />
 
                 <div className="page-container" style={{ position: 'relative' }}>
                     <div
                         style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            padding: '5px 14px',
+                            borderRadius: 6,
+                            marginBottom: 22,
+                            background: 'rgba(232,130,90,0.08)',
+                            border: '1px solid rgba(232,130,90,0.25)',
+                            color: '#e8825a',
+                            fontSize: '0.74rem',
+                            fontFamily: 'var(--font-mono)',
+                            fontWeight: 600,
+                            letterSpacing: '0.12em',
+                            textTransform: 'uppercase',
+                        }}
+                    >
+                        <Zap size={12} /> AI-Powered Interview Prep
+                    </div>
+
+                    <div
+                        style={{
+                            fontFamily: 'var(--font-display)',
                             fontSize: 'clamp(2.8rem, 8vw, 5.5rem)',
                             fontWeight: 900,
                             lineHeight: 1,
                             marginBottom: 16,
-                            letterSpacing: '-0.03em',
-                            background: 'linear-gradient(135deg, #38bdf8 0%, #818cf8 100%)',
+                            letterSpacing: '-0.02em',
+                            background: 'linear-gradient(135deg, #e8825a 0%, #f0a878 100%)',
                             WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent',
                         }}
@@ -97,31 +129,13 @@ export default function LandingPage() {
                         <AuthErrorBanner />
                     </Suspense>
 
-                    <div
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 8,
-                            padding: '6px 16px',
-                            borderRadius: 20,
-                            marginBottom: 24,
-                            background: 'rgba(56,189,248,0.08)',
-                            border: '1px solid rgba(56,189,248,0.25)',
-                            color: '#38bdf8',
-                            fontSize: '0.82rem',
-                            fontWeight: 600,
-                        }}
-                    >
-                        <Zap size={13} /> AI-Powered Interview Prep
-                    </div>
-
                     <h1
                         style={{
                             fontSize: 'clamp(1.4rem, 3.5vw, 2.4rem)',
                             fontWeight: 700,
                             lineHeight: 1.25,
                             marginBottom: 20,
-                            color: '#e2e8f0',
+                            color: '#f5ece1',
                         }}
                     >
                         Practice interviews on <span className="gradient-text">your own code</span>
@@ -130,7 +144,7 @@ export default function LandingPage() {
                     <p
                         style={{
                             fontSize: 'clamp(1rem, 2vw, 1.15rem)',
-                            color: '#94a3b8',
+                            color: '#ab9d90',
                             maxWidth: 620,
                             margin: '0 auto 40px',
                             lineHeight: 1.75,
@@ -165,7 +179,7 @@ export default function LandingPage() {
                         )}
                     </div>
 
-                    <p style={{ marginTop: 20, color: '#64748b', fontSize: '0.82rem' }}>
+                    <p style={{ marginTop: 20, color: '#7d7165', fontSize: '0.82rem' }}>
                         Free to use · Public repos only · Guest reviews expire after 15 minutes of inactivity
                     </p>
                 </div>
@@ -178,9 +192,9 @@ export default function LandingPage() {
                             display: 'grid',
                             gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
                             gap: 0,
-                            background: 'rgba(19,29,53,0.5)',
+                            background: 'rgba(34,28,22,0.5)',
                             border: '1px solid var(--border)',
-                            borderRadius: 16,
+                            borderRadius: 12,
                             overflow: 'hidden',
                         }}
                     >
@@ -199,18 +213,19 @@ export default function LandingPage() {
                             >
                                 <span
                                     style={{
-                                        fontSize: '0.68rem',
-                                        fontWeight: 800,
-                                        color: '#38bdf8',
+                                        fontSize: '0.7rem',
+                                        fontFamily: 'var(--font-mono)',
+                                        fontWeight: 700,
+                                        color: '#e8825a',
                                         letterSpacing: '0.1em',
-                                        opacity: 0.8,
+                                        opacity: 0.85,
                                     }}
                                 >
                                     {step.n}
                                 </span>
                                 <span
                                     style={{
-                                        color: '#cbd5e1',
+                                        color: '#d8cdc1',
                                         fontSize: '0.85rem',
                                         fontWeight: 500,
                                         lineHeight: 1.4,
@@ -231,7 +246,7 @@ export default function LandingPage() {
                             style={{
                                 fontSize: 'clamp(1.5rem, 3vw, 1.9rem)',
                                 fontWeight: 700,
-                                color: '#e2e8f0',
+                                color: '#f5ece1',
                                 marginBottom: 12,
                             }}
                         >
@@ -255,12 +270,12 @@ export default function LandingPage() {
                                         height: 44,
                                         borderRadius: 10,
                                         flexShrink: 0,
-                                        background: 'linear-gradient(135deg, rgba(14,165,233,0.2), rgba(99,102,241,0.2))',
-                                        border: '1px solid rgba(56,189,248,0.2)',
+                                        background: 'linear-gradient(135deg, rgba(232,130,90,0.2), rgba(196,99,61,0.2))',
+                                        border: '1px solid rgba(232,130,90,0.2)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        color: '#38bdf8',
+                                        color: '#e8825a',
                                         marginBottom: 16,
                                     }}
                                 >
@@ -269,14 +284,14 @@ export default function LandingPage() {
                                 <h3
                                     style={{
                                         fontWeight: 600,
-                                        color: '#e2e8f0',
+                                        color: '#f5ece1',
                                         marginBottom: 8,
                                         fontSize: '0.95rem',
                                     }}
                                 >
                                     {feature.title}
                                 </h3>
-                                <p style={{ color: '#94a3b8', fontSize: '0.875rem', lineHeight: 1.65 }}>
+                                <p style={{ color: '#ab9d90', fontSize: '0.875rem', lineHeight: 1.65 }}>
                                     {feature.desc}
                                 </p>
                             </div>
@@ -288,19 +303,22 @@ export default function LandingPage() {
             <section style={{ padding: '0 24px 80px' }}>
                 <div className="page-container">
                     <div
+                        className="texture-marks"
                         style={{
-                            background: 'linear-gradient(135deg, rgba(14,165,233,0.1), rgba(99,102,241,0.1))',
-                            border: '1px solid rgba(56,189,248,0.2)',
-                            borderRadius: 20,
+                            position: 'relative',
+                            background: 'linear-gradient(135deg, rgba(232,130,90,0.1), rgba(196,99,61,0.1))',
+                            border: '1px solid rgba(232,130,90,0.2)',
+                            borderRadius: 16,
                             padding: 'clamp(36px, 6vw, 60px) clamp(24px, 5vw, 48px)',
                             textAlign: 'center',
+                            overflow: 'hidden',
                         }}
                     >
                         <h2
                             style={{
                                 fontSize: 'clamp(1.4rem, 3vw, 2rem)',
                                 fontWeight: 700,
-                                color: '#e2e8f0',
+                                color: '#f5ece1',
                                 marginBottom: 12,
                             }}
                         >
@@ -308,7 +326,7 @@ export default function LandingPage() {
                         </h2>
                         <p
                             style={{
-                                color: '#94a3b8',
+                                color: '#ab9d90',
                                 fontSize: 'clamp(0.9rem, 2vw, 1rem)',
                                 maxWidth: 520,
                                 margin: '0 auto 32px',
@@ -329,12 +347,14 @@ export default function LandingPage() {
                 style={{
                     padding: '24px',
                     textAlign: 'center',
-                    color: '#475569',
-                    fontSize: '0.82rem',
-                    borderTop: '1px solid rgba(99,179,237,0.08)',
+                    color: '#695e54',
+                    fontSize: '0.78rem',
+                    fontFamily: 'var(--font-mono)',
+                    letterSpacing: '0.02em',
+                    borderTop: '1px solid rgba(212,150,110,0.08)',
                 }}
             >
-                Built with Next.js · MongoDB · OpenRouter AI · NextAuth
+                Built with Next.js · MongoDB · Gemini · NextAuth
             </footer>
         </div>
     );

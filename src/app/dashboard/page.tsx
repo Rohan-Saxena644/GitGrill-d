@@ -18,9 +18,9 @@ function ScoreBadge({ avg }: { avg: number }) {
 
 function StatusPill({ status }: { status: string }) {
   const map: Record<string, { label: string; color: string }> = {
-    draft:     { label: 'Draft',       color: '#64748b' },
-    active:    { label: 'In Progress', color: '#fbbf24' },
-    completed: { label: 'Completed',   color: '#34d399' },
+    draft:     { label: 'Draft',       color: '#7d7165' },
+    active:    { label: 'In Progress', color: '#e0ad55' },
+    completed: { label: 'Completed',   color: '#9cba78' },
   };
   const { label, color } = map[status] ?? map.draft;
   return (
@@ -39,9 +39,9 @@ function TrackPill({ track }: { track?: string }) {
   return (
     <span style={{
       fontSize: '0.72rem', fontWeight: 600,
-      color: isSystems ? '#2dd4bf' : '#38bdf8',
-      background: isSystems ? 'rgba(45,212,191,0.12)' : 'rgba(56,189,248,0.12)',
-      border: `1px solid ${isSystems ? 'rgba(45,212,191,0.28)' : 'rgba(56,189,248,0.28)'}`,
+      color: isSystems ? '#7fb3a3' : '#e8825a',
+      background: isSystems ? 'rgba(127,179,163,0.12)' : 'rgba(232,130,90,0.12)',
+      border: `1px solid ${isSystems ? 'rgba(127,179,163,0.28)' : 'rgba(232,130,90,0.28)'}`,
       padding: '3px 10px', borderRadius: 20,
       display: 'inline-flex', alignItems: 'center', gap: 5,
     }}>
@@ -105,11 +105,11 @@ export default function DashboardPage() {
         {/* ── Header ── */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32, flexWrap: 'wrap', gap: 16 }}>
           <div>
-            <h1 style={{ fontSize: 'clamp(1.4rem,4vw,1.9rem)', fontWeight: 700, color: '#e2e8f0', marginBottom: 4 }}>
+            <h1 style={{ fontSize: 'clamp(1.4rem,4vw,1.9rem)', fontWeight: 700, color: '#f5ece1', marginBottom: 4 }}>
               Your Interviews
             </h1>
-            <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>
-              Welcome back, <strong style={{ color: '#e2e8f0' }}>{session?.user?.name}</strong>
+            <p style={{ color: '#ab9d90', fontSize: '0.875rem' }}>
+              Welcome back, <strong style={{ color: '#f5ece1' }}>{session?.user?.name}</strong>
             </p>
           </div>
           <Link href="/interview/new" className="btn-primary" style={{ textDecoration: 'none' }}>
@@ -125,19 +125,19 @@ export default function DashboardPage() {
             gap: 12, marginBottom: 32,
           }}>
             {[
-              { label: 'Total Sessions',  value: sessions.length,         color: '#38bdf8' },
-              { label: 'Completed',       value: completed,               color: '#34d399' },
-              { label: 'In Progress',     value: inProgress,              color: '#fbbf24' },
-              { label: 'Avg Score',       value: overallAvg > 0 ? overallAvg.toFixed(1) : '—', color: overallAvg >= 7 ? '#34d399' : overallAvg >= 5 ? '#fbbf24' : '#f87171' },
+              { label: 'Total Sessions',  value: sessions.length,         color: '#e8825a' },
+              { label: 'Completed',       value: completed,               color: '#9cba78' },
+              { label: 'In Progress',     value: inProgress,              color: '#e0ad55' },
+              { label: 'Avg Score',       value: overallAvg > 0 ? overallAvg.toFixed(1) : '—', color: overallAvg >= 7 ? '#9cba78' : overallAvg >= 5 ? '#e0ad55' : '#d8654f' },
             ].map((stat) => (
               <div key={stat.label} style={{
-                background: 'rgba(19,29,53,0.5)', border: '1px solid var(--border)',
+                background: 'rgba(34,28,22,0.5)', border: '1px solid var(--border)',
                 borderRadius: 12, padding: '16px 20px',
               }}>
                 <div style={{ fontSize: 'clamp(1.4rem,3vw,1.8rem)', fontWeight: 800, color: stat.color, lineHeight: 1 }}>
                   {stat.value}
                 </div>
-                <div style={{ color: '#64748b', fontSize: '0.78rem', marginTop: 4 }}>{stat.label}</div>
+                <div style={{ color: '#7d7165', fontSize: '0.78rem', marginTop: 4 }}>{stat.label}</div>
               </div>
             ))}
           </div>
@@ -148,14 +148,14 @@ export default function DashboardPage() {
           <div className="glass-card" style={{ padding: 'clamp(40px,8vw,80px) clamp(20px,5vw,40px)', textAlign: 'center' }}>
             <div style={{
               width: 64, height: 64, borderRadius: 16,
-              background: 'rgba(56,189,248,0.06)', border: '1px solid rgba(56,189,248,0.18)',
+              background: 'rgba(232,130,90,0.06)', border: '1px solid rgba(232,130,90,0.18)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 20px', color: '#38bdf8',
+              margin: '0 auto 20px', color: '#e8825a',
             }}>
               <GitBranch size={28} />
             </div>
-            <h2 style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 8 }}>No interviews yet</h2>
-            <p style={{ color: '#94a3b8', marginBottom: 28, fontSize: '0.9rem', maxWidth: 360, margin: '0 auto 28px' }}>
+            <h2 style={{ color: '#f5ece1', fontWeight: 600, marginBottom: 8 }}>No interviews yet</h2>
+            <p style={{ color: '#ab9d90', marginBottom: 28, fontSize: '0.9rem', maxWidth: 360, margin: '0 auto 28px' }}>
               Start with a repo viva or jump straight into the systems track for real-world engineering practice.
             </p>
             <Link href="/interview/new" className="btn-primary" style={{ textDecoration: 'none' }}>
@@ -187,8 +187,8 @@ export default function DashboardPage() {
                     disabled={deletingId === s._id}
                     style={{
                       position: 'absolute', top: 14, right: 14, zIndex: 10,
-                      background: 'rgba(239,68,68,0.08)', color: '#ef4444',
-                      border: '1px solid rgba(239,68,68,0.25)', borderRadius: 8,
+                      background: 'rgba(194,80,60,0.08)', color: '#c2503c',
+                      border: '1px solid rgba(194,80,60,0.25)', borderRadius: 8,
                       padding: '6px', cursor: deletingId === s._id ? 'not-allowed' : 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       transition: 'all 0.2s', outline: 'none',
@@ -202,24 +202,24 @@ export default function DashboardPage() {
                     <div className="glass-card" style={{ padding: '22px', cursor: 'pointer', height: '100%' }}>
                       {/* Repo name */}
                       <div style={{ paddingRight: 36, marginBottom: 14 }}>
-                        <div style={{ fontWeight: 700, color: '#e2e8f0', fontSize: '1rem', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <div style={{ fontWeight: 700, color: '#f5ece1', fontSize: '1rem', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {title}
                         </div>
-                        <div style={{ color: '#64748b', fontSize: '0.78rem' }}>{subtitle}</div>
+                        <div style={{ color: '#7d7165', fontSize: '0.78rem' }}>{subtitle}</div>
                       </div>
 
                       {/* Status + answered */}
                       <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
                         <TrackPill track={s.interviewTrack} />
                         <StatusPill status={s.status} />
-                        <span style={{ color: '#64748b', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ color: '#7d7165', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4 }}>
                           <CheckCircle2 size={12} />
                           {s.answers.length}/{s.questions.length} answered
                         </span>
                       </div>
 
                       {isSystems && (s.systemTopics?.length ?? 0) > 0 && (
-                        <div style={{ marginBottom: 14, color: '#94a3b8', fontSize: '0.78rem', lineHeight: 1.5 }}>
+                        <div style={{ marginBottom: 14, color: '#ab9d90', fontSize: '0.78rem', lineHeight: 1.5 }}>
                           {(s.systemTopics ?? []).slice(0, 2).join(' · ')}
                           {(s.systemTopics?.length ?? 0) > 2 ? ` +${(s.systemTopics?.length ?? 0) - 2} more` : ''}
                         </div>
@@ -228,13 +228,13 @@ export default function DashboardPage() {
                       {/* Progress bar */}
                       {s.questions.length > 0 && (
                         <div style={{ marginBottom: 16 }}>
-                          <div style={{ height: 4, background: 'rgba(99,179,237,0.1)', borderRadius: 2, overflow: 'hidden' }}>
+                          <div style={{ height: 4, background: 'rgba(212,150,110,0.1)', borderRadius: 2, overflow: 'hidden' }}>
                             <div style={{
                               height: '100%', borderRadius: 2,
                               width: `${answeredPct}%`,
                               background: s.status === 'completed'
-                                ? 'linear-gradient(90deg, #34d399, #0ea5e9)'
-                                : 'linear-gradient(90deg, #0ea5e9, #6366f1)',
+                                ? 'linear-gradient(90deg, #9cba78, #e8825a)'
+                                : 'linear-gradient(90deg, #e8825a, #c4633d)',
                               transition: 'width 0.4s',
                             }} />
                           </div>
@@ -243,7 +243,7 @@ export default function DashboardPage() {
 
                       {/* Footer */}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#64748b', fontSize: '0.78rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#7d7165', fontSize: '0.78rem' }}>
                           <Clock size={12} /> {date}
                         </div>
                         <ScoreBadge avg={score} />
