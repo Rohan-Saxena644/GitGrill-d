@@ -1,6 +1,6 @@
 import { GuestSessionState, ISession } from '@/types';
 
-export const GUEST_SESSION_KEY = 'codeviva_guest_session';
+export const GUEST_SESSION_KEY = 'gitgrilld_guest_session';
 export const GUEST_SESSION_IDLE_MS = 15 * 60 * 1000;
 
 function isBrowser() {

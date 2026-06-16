@@ -28,7 +28,7 @@ export function buildInterviewMarkdown(session: ISession | GuestSessionState) {
             : 0;
 
     const lines: string[] = [
-        `# CodeViva Review Export`,
+        `# GitGrill'd Review Export`,
         ``,
         `- Track: ${session.interviewTrack === 'systems' ? 'Systems Track' : 'Repo Viva'}`,
         `- Title: ${

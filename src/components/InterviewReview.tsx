@@ -108,7 +108,7 @@ export default function InterviewReview({
                 : `${session.repoOwner}-${session.repoName}`.replace(/[^a-z0-9-_]+/gi, '-').toLowerCase();
 
         link.href = url;
-        link.download = `codeviva-${sessionLabel}-review.md`;
+        link.download = `gitgrilld-${sessionLabel}-review.md`;
         document.body.appendChild(link);
         link.click();
         link.remove();

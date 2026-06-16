@@ -6,7 +6,7 @@ import Navbar from '@/components/Navbar';
 import './globals.css';
 
 export const metadata: Metadata = {
-    title: 'CodeViva - AI Interview Prep From Your Own Code',
+    title: "GitGrill'd - AI Interview Prep From Your Own Code",
     description:
         'Paste your GitHub repo URL, tag the important files, and get 10 realistic MCQ-style interview questions based on code you actually wrote.',
 };
