@@ -122,7 +122,7 @@ export default function LandingPage() {
                             WebkitTextFillColor: 'transparent',
                         }}
                     >
-                        GitGrill'd
+                        GitGrill&apos;d
                     </div>
 
                     <Suspense fallback={null}>
@@ -332,7 +332,7 @@ export default function LandingPage() {
                                 margin: '0 auto 32px',
                             }}
                         >
-                            GitGrill'd focuses on realistic code interviews and viva prep, with explanations that help
+                            GitGrill&apos;d focuses on realistic code interviews and viva prep, with explanations that help
                             you say the right thing out loud.
                         </p>
                         <button onClick={startInterview} className="btn-primary" style={{ padding: '14px 36px', fontSize: '1.05rem' }}>
