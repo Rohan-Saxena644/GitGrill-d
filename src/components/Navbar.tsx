@@ -87,7 +87,7 @@ export default function Navbar() {
                         >
                             <Code2 size={18} color="#20160e" />
                         </div>
-                        <span className="nav-logo-text">GitGrill'd</span>
+                        <span className="nav-logo-text">GitGrill&apos;d</span>
                     </Link>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
