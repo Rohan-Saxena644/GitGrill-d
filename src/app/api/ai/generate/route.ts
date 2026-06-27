@@ -40,6 +40,10 @@ function sanitizeResumeContext(resumeContext: unknown) {
     return typeof resumeContext === 'string' ? resumeContext.trim().slice(0, 4000) : '';
 }
 
+/**
+ * Calls the Python service, retrying once if the service is waking up (503).
+ * On 503, throws a user-friendly error so the frontend can display it.
+ */
 async function generateViaPython(payload: object): Promise<Question[]> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 110_000);
@@ -51,6 +55,20 @@ async function generateViaPython(payload: object): Promise<Question[]> {
             body: JSON.stringify(payload),
             signal: controller.signal,
         });
+
+        // Handle cold-start / waking-up state gracefully
+        if (res.status === 503) {
+            let detail = 'The AI backend is waking up. Please wait a few seconds and try again.';
+            try {
+                const body = await res.json() as { detail?: string; message?: string };
+                if (body.detail || body.message) {
+                    detail = body.detail ?? body.message ?? detail;
+                }
+            } catch {
+                // ignore JSON parse errors
+            }
+            throw new Error(`SERVICE_WAKING_UP: ${detail}`);
+        }
 
         if (!res.ok) {
             const err = await res.text().catch(() => `HTTP ${res.status}`);
@@ -93,6 +111,12 @@ async function generateWithFallback(
             return await generateViaPython(payload);
         } catch (pythonErr: unknown) {
             const msg = pythonErr instanceof Error ? pythonErr.message : String(pythonErr);
+
+            // Surface the "waking up" message to the user instead of silently falling back
+            if (msg.startsWith('SERVICE_WAKING_UP:')) {
+                throw new Error(msg.replace('SERVICE_WAKING_UP:', '').trim());
+            }
+
             console.warn('Python service failed, falling back to Gemini direct:', msg);
         }
     }
