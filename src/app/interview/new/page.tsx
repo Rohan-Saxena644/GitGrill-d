@@ -138,6 +138,15 @@ export default function NewInterviewPage() {
         [track]
     );
 
+
+    // Called by the overlay countdown when backend wakes up
+    const retryGenerate = useCallback(() => {
+        setIsWakingUp(false);
+        doGenerate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+
     if (status === 'loading') {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
@@ -181,12 +190,7 @@ export default function NewInterviewPage() {
         setStep(2);
     }
 
-    // Called by the overlay countdown when backend wakes up
-    const retryGenerate = useCallback(() => {
-        setIsWakingUp(false);
-        doGenerate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+   
 
     async function generateQuestions() {
         setIsWakingUp(false);
