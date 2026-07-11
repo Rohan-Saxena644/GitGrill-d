@@ -6,7 +6,6 @@ import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, BookOpen, Chrome, Code2, GitBranch, Github, MessageSquare, Target, Zap } from 'lucide-react';
 import AuthErrorBanner from '@/components/AuthErrorBanner';
-import { useEffect } from 'react';
 
 const features = [
     {
@@ -53,13 +52,6 @@ export default function LandingPage() {
     const router = useRouter();
 
     const startInterview = () => router.push('/interview/new');
-
-    useEffect(() => {
-        // Silently wake the Python backend as soon as user lands
-        if (process.env.NEXT_PUBLIC_PYTHON_SERVICE_URL) {
-            fetch(`${process.env.NEXT_PUBLIC_PYTHON_SERVICE_URL}/health`).catch(() => {});
-        }
-    }, []);
 
     return (
         <div style={{ minHeight: '100vh' }}>

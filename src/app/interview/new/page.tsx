@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import GeneratingOverlay from '@/components/GeneratingOverlay';
@@ -127,7 +127,6 @@ export default function NewInterviewPage() {
     const [difficultyPreset, setDifficultyPreset] = useState<DifficultyPreset>('balanced');
     const [resumeContext, setResumeContext] = useState('');
     const [loading, setLoading] = useState(false);
-    const [isWakingUp, setIsWakingUp] = useState(false);
     const [error, setError] = useState('');
     const stepConfig = useMemo(
         () => [
@@ -137,15 +136,6 @@ export default function NewInterviewPage() {
         ],
         [track]
     );
-
-
-    // Called by the overlay countdown when backend wakes up
-    const retryGenerate = useCallback(() => {
-        setIsWakingUp(false);
-        doGenerate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
 
     if (status === 'loading') {
         return (
@@ -193,7 +183,6 @@ export default function NewInterviewPage() {
    
 
     async function generateQuestions() {
-        setIsWakingUp(false);
         doGenerate();
     }
 
@@ -307,12 +296,6 @@ export default function NewInterviewPage() {
             router.push('/interview/guest');
         } catch (e: unknown) {
             const msg = e instanceof Error ? e.message : 'Something went wrong';
-            // Detect cold-start: route.ts throws this specific message on 503
-            if (msg.toLowerCase().includes('waking up')) {
-                setIsWakingUp(true);
-                // keep loading=true so overlay stays visible during countdown
-                return;
-            }
             setError(msg);
             setLoading(false);
         }
@@ -873,11 +856,7 @@ export default function NewInterviewPage() {
                 </div>
             )}
             {/* Full-screen generation overlay — appears when loading=true */}
-            <GeneratingOverlay
-                isVisible={loading}
-                isWakingUp={isWakingUp}
-                onWakeRetry={retryGenerate}
-            />
+            <GeneratingOverlay isVisible={loading} />
         </div>
     );
 }
