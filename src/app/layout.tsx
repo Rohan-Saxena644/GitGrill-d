@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Analytics } from '@vercel/analytics/next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import Providers from '@/components/Providers';
@@ -25,6 +26,7 @@ export default async function RootLayout({
                     <Navbar />
                     <main>{children}</main>
                 </Providers>
+                <Analytics />
             </body>
         </html>
     );
